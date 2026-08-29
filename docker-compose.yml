@@ -1,0 +1,75 @@
+# Agentsuite local infra — Authority: Temporal + Postgres + Redis
+# Usage: docker compose up -d
+# Temporal UI: http://localhost:8080
+# Postgres (app): localhost:5432 / agentsuite / agentsuite / agentsuite
+# Redis: localhost:6379
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: agentsuite-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agentsuite
+      POSTGRES_PASSWORD: agentsuite
+      POSTGRES_DB: agentsuite
+    ports:
+      - "5432:5432"
+    volumes:
+      - agentsuite_pg_data:/var/lib/postgresql/data
+      - ./infra/postgres/init-temporal-dbs.sql:/docker-entrypoint-initdb.d/01-init-temporal.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentsuite -d agentsuite"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: agentsuite-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - agentsuite_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  temporal:
+    image: temporalio/auto-setup:1.27.2
+    container_name: agentsuite-temporal
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=agentsuite
+      - POSTGRES_PWD=agentsuite
+      - POSTGRES_SEEDS=postgres
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    ports:
+      - "7233:7233"
+    volumes:
+      - ./infra/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig:ro
+
+  temporal-ui:
+    image: temporalio/ui:2.34.0
+    container_name: agentsuite-temporal-ui
+    restart: unless-stopped
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8080:8080"
+
+volumes:
+  agentsuite_pg_data:
+  agentsuite_redis_data:
