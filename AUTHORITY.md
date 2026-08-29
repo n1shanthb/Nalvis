@@ -12,6 +12,14 @@ Build a **single-tenant, multi-product agentic automation platform** that ingest
 - **Verifiable outcomes**: all “agent claims” must be supported by external evidence (URLs/IDs) or fail validation.
 - **Operational excellence**: audit log, observability, run history, approvals inbox, and reproducible workflows.
 
+## Anti-example-coding rule (locked — whole system)
+Examples anywhere (this doc, `goallol.md`, `PHASES.md`, chat, comments, demos) are **pedagogical only**.
+
+- **Do not** implement features “for that example” or only along the example’s path (specific product names, mail→GitHub pairings, one smoke repo story, one happy path).
+- **Do** implement the **underlying concept**: general schemas, catalogs, policies, workflows, auditors, evidence contracts, and connector interfaces that remain correct when the scenario, channel, agent set, or company KG changes.
+- Director routing, agent synthesis, HIL, validation, UI pages, and connector usage all inherit this rule.
+- If a PR only works for the example case and would need a new `if`/branch for the next case, it is **wrong** under this Authority.
+
 ## Non-goals (explicitly out of scope for v1)
 - Multi-tenant SaaS (v1 is **single tenant**).
 - End-user “chatbot” experience (agents are not chatbots; they execute jobs).
@@ -96,10 +104,45 @@ Evidence is required for “Succeeded” jobs.
 - **NO_EVIDENCE**: the agent claimed success but provided nothing verifiable.
 Note: internal systems may use additional verdict labels, but the public platform contract must surface the canonical trio above.
 
-## Multi-agent system design
+## LLM vs deterministic split (locked — anti-rules-engine)
 
-### Agent types (minimum set for v1)
-Agents are **specialized executors** with minimal tool access.
+Do **not** grow a giant semantic rules engine in the deterministic layer. Determinism establishes **facts and bounds**; the LLM establishes **meaning and capability**; an auditor checks **groundedness**.
+
+### Deterministic layer establishes (facts / inventory / bounds)
+- **WHAT EXISTS** — entities present in ingested context (products, repos, projects, calendars, mail groups, named systems like Slack/Notion/AWS, …) as structured inventory, not “what it means for automation.”
+- **WHO OWNS IT** — company/tenant + which product workspace a scoped resource belongs to (from KG relationships / explicit ownership fields).
+- **WHAT EVIDENCE SUPPORTS IT** — pointers back to KG paths / document ids that justify each inventory row.
+- **WHAT SYSTEMS ARE ACTUALLY AVAILABLE** — which connectors are configured and executable *right now* (GitHub/Jira/Gmail/Calendar vs missing) vs merely mentioned.
+- **WHAT SCOPE IS VALID** — allowlists and hard boundaries for writes (repo lists, jira keys, calendar ids, domains); policy/HIL toggles; schema validity.
+
+Deterministic code may parse, normalize, validate schema, index relationships, and enforce allow/deny. It must **not** encode brittle semantic trees (“if complaint then …”, “if meeting then …”, department heuristics, etc.).
+
+### LLM layer establishes (meaning / capability / specialization)
+- **WHAT THIS WORK MEANS** — intent of a signal or objective in context of the company.
+- **WHAT CAPABILITY IT REPRESENTS** — which automation capability classes apply.
+- **WHAT AUTOMATION COULD HELP** — opportunities, including systems not yet connected.
+- **WHAT AGENT SPECIALIZATION MAKES SENSE** — proposed agent missions, roles, tool allowlists drawn from the valid catalog, including `unsupported` stubs for unavailable systems.
+
+### Deterministic auditor (groundedness gate)
+After any LLM proposal (agent synthesis, Director routing, job plans):
+- Is every referenced resource in the deterministic inventory and in-scope?
+- Are proposed tools ⊆ agent allowlist and ⊆ **actually available** systems (else mark/create `unsupported`, never fake-execute)?
+- Does each proposed write `job_type` have an evidence contract?
+- Reject or rewrite proposals that are ungrounded; never “fix forward” by inventing facts.
+
+This balance is mandatory for Director routing, agent creation, and run planning.
+
+### Agent discovery vs agent execution (locked)
+KG/context may mention **any** external system the company uses (Slack, Notion, AWS, GCP, Linear, Salesforce, etc.). The platform **must identify** those automation opportunities and **create Agent records** for them (mission, origin evidence, desired tool surface).
+
+**v1 executable connectors (tools exist):** GitHub (MCP), Jira (MCP), Gmail (native), Calendar (native), plus read-only **ValidationAgent**.
+
+**Unsupported-but-discovered agents:** If the KG implies automation on a system with **no connected tool surface yet**, still create the agent, set `status=unsupported` (or equivalent), `activation=blocked_missing_connector`, and **empty/deny write tools**. It appears in the Agents directory with a clear “not supported — connect {system} to activate” state. When that connector is later wired, the same agent can be activated without re-deriving identity from scratch.
+
+Do **not** invent fake executors that pretend to act on Slack/Notion/AWS/etc. in v1. Discovery ≠ execution.
+
+### Agent types (minimum executable set for v1)
+Agents are **specialized executors** with minimal tool access. The following are the v1 **runnable** specializations (instantiated only when KG/scopes justify them):
 
 - **GitHubIssueManagerAgent**
   - create/triage/label/assign issues within workspace repo scope
@@ -123,18 +166,33 @@ Agents are **specialized executors** with minimal tool access.
   - re-queries MCP systems to verify evidence and emits PASS/FAIL/NO_EVIDENCE
   - must not have write tools
 
+- **DirectorAgent (router / planner — not a writer)**
+  - Chooses **which specialist agent(s)** should run for a given signal or objective.
+  - Exists so we **do not** activate every agent that shares a connector (e.g. every agent with Gmail read).
+  - **Generalized routing (locked):** see project-wide **Anti-example-coding rule**. Director classifies any signal/objective against the live agent catalog + scopes + allowlists; no scenario trees or fixed pairings.
+  - Output is a structured **routing decision** (candidate jobs: `agent_id`, `job_type`, `requested_action`, confidence, rationale) — **no external write tools**.
+  - A deterministic **Routing Auditor** must accept/reject the decision (workspace scope, agent status must be executable not `unsupported`, tool allowlist, evidence contract exists). Rejected routes do not become jobs.
+
+### Runtime activation rule (locked)
+Specialist agents are **idle until selected**. The Director (or an explicit human-started run objective) selects a **small set** of agents per signal. Sharing a tool family (e.g. `gmail.read`) does **not** imply co-activation.
+
 ### Guardrails (locked principles)
-- **Least privilege tools**: each agent receives only tools needed for its job types.
+- **Least privilege tools**: each agent receives only tools needed for its job types (unsupported agents get none; Director has no write tools).
 - **Workspace scoping**: tools must enforce workspace boundaries (no cross-product writes).
 - **Policy gating**: tool calls that are “write” must consult Policy Engine; may require HIL.
 - **Structured I/O**: all agent outputs are validated against schemas (Pydantic).
+- **No mock execution**: unsupported agents must not emit synthetic success or fake evidence.
+- **Director ≠ executor**: routing mistakes are caught by the Routing Auditor; execution still goes through Policy/HIL/Evidence/Validation.
+- **Concept over example**: never code the illustration; code the abstraction (see Anti-example-coding rule).
 
 ## Temporal orchestration (authoritative workflows)
 
 ### CompanyRunWorkflow
 Input: KG JSON + optional run objectives.
 Steps:
-- Parse KG → derive `ProductWorkspace[]` candidates and their scopes.
+- **Deterministic ingest:** parse/validate KG → inventory of what exists, ownership, supporting evidence pointers, valid scopes, and which connectors are actually available (see LLM vs deterministic split).
+- **LLM synthesis:** propose agent specializations / automation opportunities from that inventory (meaning + capability — including unsupported systems as stubs).
+- **Auditor:** groundedness check; persist accepted workspaces/agents only.
 - For each workspace: start `ProductRunWorkflow` (fan-out with bounded concurrency).
 - Aggregate job results (fan-in).
 - Trigger validation for every job that claims success.
@@ -142,7 +200,9 @@ Steps:
 
 ### ProductRunWorkflow(workspace_id)
 Steps:
-- Create an execution plan for the workspace.
+- **DirectorAgent (routing activity)**: given run objectives and/or inbound signals (e.g. email thread summary), propose which specialist agents/jobs to run — do **not** wake all agents that share a connector.
+- **Routing Auditor (deterministic)**: accept/reject proposed jobs (scope, executable agent only, tool allowlist, evidence contract).
+- Materialize accepted jobs in Postgres.
 - Execute jobs in parallel where safe (bounded concurrency).
 - For any gated action: pause and wait for approval signal.
 - Record per-job audit events.
@@ -219,10 +279,13 @@ We ship a simple but professional UI (internal console) with:
 
 Frontend is not a chat UI. It is an operations console for runs/jobs/approvals/validation.
 
+**Anti-fake-data rule:** The ops console must not ship synthetic/seeded operational records (fake runs, agents, approvals, integrations health, or validation outcomes). Empty lists and explicit empty/error states are required when the control plane has no data. Parse-preview of operator-pasted input is allowed; inventing tenant history is not.
+
 ## KG JSON (placeholder until sample provided)
 We will define and lock the KG schema after a sample is provided. Until then:
-- KG must be able to represent: products, repos, jira projects, calendars, email groups, stakeholders, and relationships.
-- The system must deterministically derive workspace scopes from KG relationships.
+- KG must be able to represent: products, repos, jira projects, calendars, email groups, stakeholders, relationships, and named external systems.
+- The **deterministic** layer extracts inventory + ownership + evidence pointers + valid scopes + connector availability from KG relationships.
+- The **LLM** layer interprets what automation/agents that inventory implies; the **auditor** enforces groundedness. Do not replace LLM meaning with a hand-coded semantic discovery engine.
 
 ## Change control (anti-drift rule)
 - Any change to scope, workflow semantics, evidence requirements, or UI pages must update this doc in the same PR.
