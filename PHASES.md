@@ -37,20 +37,21 @@ Systematically port the **good, working modules** from the previous project (whe
 ### Goal
 Create a minimal but “production-shaped” skeleton with **clear contracts** (jobs, evidence, validation outcomes) and environment wiring.
 
-### Deliverables
-- **Project skeleton**: API service, worker service, shared packages/modules layout.
-- **Config system**: settings for Postgres/Redis/Temporal/MCP endpoints; env-based profiles.
-- **Core domain schemas** (Pydantic):
-  - `Workspace`, `Run`, `Job`, `Evidence`, `ValidationOutcome`
-- **Authority alignment**: ensure `AUTHORITY.md` and naming conventions match the code structure.
+### Deliverables (as implemented)
+- `docker-compose.yml`: Postgres 16, Redis 7, Temporal auto-setup + Temporal UI
+- Config: `DATABASE_URL`, `REDIS_URL`, `TEMPORAL_HOST/NAMESPACE/TASK_QUEUE` in `aip.config` + `.env.example`
+- Domain schemas: `aip.domain.models` → `Workspace`, `Run`, `Job`, `Evidence`, `ValidationOutcome`
+- Temporal hello: `apps/worker` (`HelloWorkflow` + activity) + `apps/worker/hello_runner.py`
+- Infra health: `scripts/infra_health.py`, `GET /api/infra/health`
+- Docs: `infra/README.md`
 
 ### Definition of done
-- A hello-world API endpoint returns service info + version.
-- A hello-world Temporal worker connects to Temporal and can run a no-op workflow.
-- Schemas compile and can serialize/deserialize sample objects.
+- [x] Hello-world API health includes infra plane status.
+- [x] Temporal worker connects and `HelloWorkflow` returns `hello, agentsuite`.
+- [x] Domain schemas serialize/deserialize (pytest).
 
 ### Demo
-- “Start API + Worker; trigger a dummy run; observe run status.”
+- `docker compose up -d` → `python scripts/infra_health.py` → worker + `python apps/worker/hello_runner.py`
 
 ---
 
@@ -236,12 +237,9 @@ Ship the **operations console** UI and the “engineering maturity” surfaces: 
 
 ---
 
-## Phase selection guidance (so we don’t overbuild)
-- If we need something to “look YC-level fast”, prioritize:
-  - Phase 1 durability + HIL pause/resume semantics
-  - Phase 3 GitHub integration with evidence-based validation (fastest impressive demo)
-  - Phase 8 agent success metrics + approvals inbox polish
-- **Active goal (post Phase 0A):** connect all 4 systems live (GitHub+Jira MCP, Gmail+Calendar native) with cloudflared webhooks — see `CONNECT.md` and `apps/api/`.
+## Active goal (post Phase 0A connectors)
+- Phase 0 infra (Postgres + Redis + Temporal) — see `INFRA_EVIDENCE.md` / `infra/README.md`
+- Next: single-tenant bootstrap + KG graph ingest (not started in infra goal)
 
 ## Per-phase planning checklist (copy/paste)
 - **Authority alignment**: which headings in `AUTHORITY.md` does this phase implement?
