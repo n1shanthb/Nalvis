@@ -28,11 +28,57 @@ app.include_router(gmail_router)
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    from aip.db.ping import check_postgres_sync
+    from aip.db.redis_ping import check_redis
+
+    infra = {
+        "postgres": check_postgres_sync(),
+        "redis": check_redis(),
+    }
+    infra_ok = all(bool(v.get("ok")) for v in infra.values())
     return {
         "ok": True,
         "service": "agentsuite-api",
         "aip_version": aip_version,
+        "infra": infra,
+        "infra_ok": infra_ok,
         "connectors": connector_smoke.health_snapshot(),
+    }
+
+
+@app.get("/api/infra/health")
+async def infra_health() -> dict[str, Any]:
+    """Deep infra check including Temporal (Authority data/orchestration plane)."""
+    from aip.config import settings
+    from aip.db.ping import check_postgres
+    from aip.db.redis_ping import check_redis
+
+    temporal: dict[str, Any]
+    try:
+        from temporalio.client import Client
+
+        client = await Client.connect(
+            settings.temporal_host,
+            namespace=settings.temporal_namespace,
+        )
+        temporal = {
+            "ok": True,
+            "host": settings.temporal_host,
+            "namespace": settings.temporal_namespace,
+            "task_queue": settings.temporal_task_queue,
+            "identity": getattr(client, "identity", None),
+        }
+    except Exception as exc:  # noqa: BLE001
+        temporal = {"ok": False, "error": str(exc)[:300]}
+
+    report = {
+        "postgres": await check_postgres(),
+        "redis": check_redis(),
+        "temporal": temporal,
+    }
+    return {
+        "ok": all(bool(v.get("ok")) for v in report.values()),
+        "services": report,
     }
 
 

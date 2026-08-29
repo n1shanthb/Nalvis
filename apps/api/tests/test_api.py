@@ -88,7 +88,10 @@ def test_gmail_webhook() -> None:
     assert resp.json()["delivery"]["payload_summary"]["history_id"] == "123"
 
 
-def test_jira_webhook() -> None:
+def test_jira_webhook(monkeypatch) -> None:
+    from aip.config import settings
+
+    monkeypatch.setattr(settings, "jira_webhook_secret", "")
     resp = client.post(
         "/api/webhooks/jira",
         json={"webhookEvent": "jira:issue_created", "issue": {"key": "ENG-1"}},
