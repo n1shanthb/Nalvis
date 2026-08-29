@@ -104,3 +104,18 @@ def test_connectors_smoke_dry_run() -> None:
     resp = client.post("/api/connectors/smoke", json={"dry_run": True})
     assert resp.status_code == 200
     assert resp.json()["dry_run"] is True
+
+
+def test_integrations_health() -> None:
+    resp = client.get("/api/integrations/health")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "integrations" in body
+    assert "checked_at" in body
+    names = {row["name"] for row in body["integrations"]}
+    assert names == {"github", "jira", "gmail", "calendar"}
+    for row in body["integrations"]:
+        assert row["status"] in {"healthy", "degraded", "down", "unknown"}
+        assert "credentialsConfigured" in row
+        assert isinstance(row.get("config"), dict)
+        assert "displayName" in row

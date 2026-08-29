@@ -1,16 +1,19 @@
-"""Agentsuite control-plane API — webhooks, tunnel, connector smoke."""
+"""Agentsuite control-plane API — webhooks, tunnel, connector smoke, ops console."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from aip import __version__ as aip_version
 from aip.connectors import smoke as connector_smoke
+from aip.db.schema import init_db
 from apps.api import tunnel
 from apps.api.deliveries import list_deliveries
+from apps.api.routes_control import router as control_router
 from apps.api.webhooks_gmail import router as gmail_router
 from apps.api.webhooks_github import router as github_router
 from apps.api.webhooks_jira import router as jira_router
@@ -18,12 +21,30 @@ from apps.api.webhooks_jira import router as jira_router
 app = FastAPI(
     title="AgentSuite Control Plane",
     version="0.1.0",
-    description="Webhooks + cloudflared tunnel + connector smoke for GitHub/Jira/Gmail/Calendar",
+    description="Control plane: ingest, runs, HIL, validations + webhooks/connectors",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(github_router)
 app.include_router(jira_router)
 app.include_router(gmail_router)
+app.include_router(control_router)
+
+
+@app.on_event("startup")
+def _startup() -> None:
+    try:
+        init_db()
+    except Exception:  # noqa: BLE001
+        # Allow API to boot even if Postgres is briefly unavailable
+        pass
 
 
 @app.get("/health")
@@ -107,6 +128,12 @@ def connectors_health() -> dict[str, Any]:
     return connector_smoke.health_snapshot()
 
 
+@app.get("/api/integrations/health")
+def integrations_health() -> dict[str, Any]:
+    """Ops-console payload: status + non-secret config for GitHub/Jira/Gmail/Calendar."""
+    return connector_smoke.integrations_console_payload()
+
+
 class SmokeRequest(BaseModel):
     systems: list[str] = Field(
         default_factory=lambda: ["github", "jira", "gmail", "calendar"]
@@ -128,4 +155,7 @@ def connectors_smoke(body: SmokeRequest) -> dict[str, Any]:
         results["gmail"] = connector_smoke.smoke_gmail_send()
     if "calendar" in wanted:
         results["calendar"] = connector_smoke.smoke_calendar_create()
-    return {"ok": all(bool(v.get("ok")) for v in results.values() if isinstance(v, dict)), "results": results}
+    return {
+        "ok": all(bool(v.get("ok")) for v in results.values() if isinstance(v, dict)),
+        "results": results,
+    }
