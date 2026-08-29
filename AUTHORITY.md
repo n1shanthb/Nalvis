@@ -208,6 +208,8 @@ We ship a simple but professional UI (internal console) with:
   - pass/fail/no-evidence breakdown, evidence links, validator reasoning + raw checks
 - **Agents**
   - directory of created agents with: name, role, tool scope summary, workspace(s), creation time, and current status
+  - per-agent **profile**: mission, origin evidence (why the agent was synthesized from ingested KG/context), full specs (model/runtime/tool contracts), and **agent-specific guardrails**
+  - guardrails are **derived per agent** from ingested context + tool scope (not a shared hardcoded set); operators can add/edit rules per tool with allow / HIL / deny / auto-run
   - per-agent run history: runs participated in, jobs executed, last active time, and most common job types
   - success metrics computed from validation outcomes:
     - overall PASS/FAIL/NO_EVIDENCE rates
