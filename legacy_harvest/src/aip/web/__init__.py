@@ -1,1 +1,0 @@
-"""AgentSuite platform web package."""
