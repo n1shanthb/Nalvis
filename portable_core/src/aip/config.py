@@ -57,10 +57,18 @@ class Settings(BaseSettings):
     jira_webhook_secret: str = ""
     gmail_webhook_secret: str = ""
 
-    # Smoke targets (optional)
-    smoke_github_owner: str = ""
-    smoke_github_repo: str = ""
+    # Smoke targets (optional; GitHub smoke must use analytics-resume only)
+    smoke_github_owner: str = "n1shanthb"
+    smoke_github_repo: str = "analytics-resume"
     smoke_jira_project_key: str = ""
+
+    # Data plane / orchestration (Authority: Postgres + Redis + Temporal)
+    database_url: str = "postgresql+asyncpg://agentsuite:agentsuite@127.0.0.1:5432/agentsuite"
+    database_url_sync: str = "postgresql://agentsuite:agentsuite@127.0.0.1:5432/agentsuite"
+    redis_url: str = "redis://127.0.0.1:6379/0"
+    temporal_host: str = "127.0.0.1:7233"
+    temporal_namespace: str = "default"
+    temporal_task_queue: str = "agentsuite-main"
 
 
 settings = Settings()
