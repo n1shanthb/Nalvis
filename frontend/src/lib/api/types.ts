@@ -24,12 +24,22 @@ export type NewGuardrailInput = {
   rationale?: string
 }
 
+export type StartRunInput = {
+  title?: string
+  objectives?: string[]
+  workspaceIds: string[]
+  plan?: Array<Record<string, unknown>>
+  signal?: Record<string, unknown>
+}
+
 export interface ApiAdapter {
   getState(): Promise<DemoState>
+  clearAllData(): Promise<DemoState>
   ingestContext(raw: string, source: 'paste' | 'upload'): Promise<ContextDocument>
   listWorkspaces(): Promise<Workspace[]>
   listRuns(): Promise<Run[]>
   getRun(runId: string): Promise<Run | undefined>
+  startRun(input: StartRunInput): Promise<Run>
   listJobs(runId?: string): Promise<Job[]>
   listTimeline(runId: string): Promise<TimelineEvent[]>
   listApprovals(decision?: ApprovalDecision): Promise<ApprovalItem[]>

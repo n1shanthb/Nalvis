@@ -11,7 +11,7 @@ export type JobStatus =
   | 'failed'
   | 'blocked_for_approval'
 
-export type AgentStatus = 'active' | 'idle' | 'disabled' | 'error'
+export type AgentStatus = 'active' | 'idle' | 'disabled' | 'error' | 'unsupported'
 
 export type IntegrationName = 'github' | 'jira' | 'gmail' | 'calendar'
 
@@ -151,6 +151,8 @@ export interface WorkspacePolicy {
   actions: ActionPolicy[]
 }
 
+export type IntegrationTransport = 'mcp' | 'native' | 'mcp+app'
+
 export interface IntegrationHealth {
   name: IntegrationName
   displayName: string
@@ -161,6 +163,11 @@ export interface IntegrationHealth {
   rateLimitRemaining: number | null
   rateLimitResetAt: string | null
   latencyMsP50: number | null
+  /** ISO timestamp from control plane health check */
+  checkedAt?: string | null
+  transport?: IntegrationTransport
+  /** Non-secret connector settings (flags, URLs, smoke targets) */
+  config?: Record<string, string | number | boolean | null | undefined>
 }
 
 export type GuardrailMode = 'allow' | 'hil' | 'deny' | 'auto'

@@ -19,11 +19,11 @@ export function getAdapter(): ApiAdapter {
   return singleton
 }
 
-/** Used by the Zustand store so mutations stay on one DemoAdapter instance. */
+/** @deprecated Prefer getAdapter() — works for both demo and http modes. */
 export function getDemoAdapter(): DemoAdapter {
   const adapter = getAdapter()
   if (!(adapter instanceof DemoAdapter)) {
-    throw new Error('Demo store requires DemoAdapter (set VITE_API_MODE=demo)')
+    throw new Error('DemoAdapter required (set VITE_API_MODE=demo)')
   }
   return adapter
 }

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
@@ -29,6 +29,7 @@ function renderAt(ui: ReactNode, path: string) {
 
 describe('empty console honesty', () => {
   beforeEach(async () => {
+    vi.unstubAllGlobals()
     await hydrateStore()
   })
 
@@ -42,10 +43,91 @@ describe('empty console honesty', () => {
     expect(useDemoStore.getState().approvals).toHaveLength(0)
   })
 
-  it('shows empty integrations honestly', async () => {
+  it('loads live integration health from the API', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: false,
+        checked_at: '2026-08-29T12:00:00+00:00',
+        integrations: [
+          {
+            name: 'github',
+            displayName: 'GitHub (MCP + App)',
+            status: 'healthy',
+            credentialsConfigured: true,
+            lastSuccessfulCallAt: null,
+            lastError: null,
+            rateLimitRemaining: null,
+            rateLimitResetAt: null,
+            latencyMsP50: null,
+            transport: 'mcp+app',
+            config: { mcp_enabled: true, smoke_repo: 'analytics-resume' },
+          },
+          {
+            name: 'jira',
+            displayName: 'Jira (Atlassian MCP)',
+            status: 'down',
+            credentialsConfigured: false,
+            lastSuccessfulCallAt: null,
+            lastError: 'ATLASSIAN_MCP_TOKEN missing',
+            rateLimitRemaining: null,
+            rateLimitResetAt: null,
+            latencyMsP50: null,
+            transport: 'mcp',
+            config: { mcp_enabled: true },
+          },
+          {
+            name: 'gmail',
+            displayName: 'Gmail (native OAuth)',
+            status: 'healthy',
+            credentialsConfigured: true,
+            lastSuccessfulCallAt: null,
+            lastError: null,
+            rateLimitRemaining: null,
+            rateLimitResetAt: null,
+            latencyMsP50: null,
+            transport: 'native',
+            config: { enabled: true, user: 'ops@example.com' },
+          },
+          {
+            name: 'calendar',
+            displayName: 'Calendar (native OAuth)',
+            status: 'healthy',
+            credentialsConfigured: true,
+            lastSuccessfulCallAt: null,
+            lastError: null,
+            rateLimitRemaining: null,
+            rateLimitResetAt: null,
+            latencyMsP50: null,
+            transport: 'native',
+            config: { shares_gmail_oauth: true },
+          },
+        ],
+      }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
     renderAt(<IntegrationsPage />, '/integrations')
     expect(screen.getByRole('heading', { name: 'Integrations Health' })).toBeInTheDocument()
-    expect(screen.getByText('No integration health data')).toBeInTheDocument()
+    expect(await screen.findByText('GitHub (MCP + App)')).toBeInTheDocument()
+    expect(screen.getByText('Jira (Atlassian MCP)')).toBeInTheDocument()
+    expect(screen.getByText('Gmail (native OAuth)')).toBeInTheDocument()
+    expect(screen.getByText('Calendar (native OAuth)')).toBeInTheDocument()
+    expect(screen.getByText('ATLASSIAN_MCP_TOKEN missing')).toBeInTheDocument()
+    expect(screen.getByText('smoke repo')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/integrations/health',
+      expect.objectContaining({ headers: { Accept: 'application/json' } }),
+    )
+  })
+
+  it('shows control-plane error when integrations health fails', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, status: 502 }),
+    )
+    renderAt(<IntegrationsPage />, '/integrations')
+    expect(await screen.findByText('Could not reach control plane')).toBeInTheDocument()
   })
 
   it('parses only operator-provided paste (no preload)', async () => {

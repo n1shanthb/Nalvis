@@ -1,16 +1,22 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { PageHeader, MetricStrip, EmptyState } from '@/components/shared/page'
 import { FilterChips, RunStatusBadge } from '@/components/shared/status'
 import { formatRelative } from '@/lib/utils'
+import { useDemoStore } from '@/lib/store'
 import { useProjectData } from '@/lib/useProjectData'
 import type { RunStatus } from '@/lib/demo/models'
 
 export function RunsPage() {
   const { projectId = '' } = useParams()
   const { workspace, runs } = useProjectData(projectId)
+  const startRun = useDemoStore((s) => s.startRun)
+  const hydrate = useDemoStore((s) => s.hydrate)
   const [status, setStatus] = useState<RunStatus | 'all'>('all')
+  const [starting, setStarting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const filtered = useMemo(
     () => runs.filter((r) => (status === 'all' ? true : r.status === status)),
@@ -26,7 +32,31 @@ export function RunsPage() {
       <PageHeader
         title={`${workspace.name} · Runs`}
         description="Orchestrated Temporal runs for this product project."
+        actions={
+          <Button
+            disabled={starting}
+            onClick={async () => {
+              setStarting(true)
+              setError(null)
+              try {
+                await startRun([`Run for ${workspace.name}`], [projectId])
+                await hydrate()
+              } catch (e) {
+                setError(e instanceof Error ? e.message : String(e))
+              } finally {
+                setStarting(false)
+              }
+            }}
+          >
+            {starting ? 'Starting…' : 'Start run'}
+          </Button>
+        }
       />
+      {error ? (
+        <p className="mb-4 text-sm text-red-600" role="alert">
+          {error}
+        </p>
+      ) : null}
       <MetricStrip
         items={[
           { label: 'Total runs', value: runs.length },
@@ -59,7 +89,7 @@ export function RunsPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState title="No runs in this project" description="Adjust status filter or wait for orchestration." />
+        <EmptyState title="No runs in this project" description="Adjust status filter or start a run." />
       ) : (
         <Card>
           <CardHeader>

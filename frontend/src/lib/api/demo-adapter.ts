@@ -24,6 +24,11 @@ export class DemoAdapter implements ApiAdapter {
     return structuredClone(this.state)
   }
 
+  async clearAllData(): Promise<DemoState> {
+    this.state = createEmptyState()
+    return structuredClone(this.state)
+  }
+
   async ingestContext(raw: string, source: 'paste' | 'upload'): Promise<ContextDocument> {
     const doc = parseContextInput(raw, source)
     this.state.contextDocuments = [doc, ...this.state.contextDocuments]
@@ -48,6 +53,25 @@ export class DemoAdapter implements ApiAdapter {
 
   async getRun(runId: string) {
     return structuredClone(this.state.runs.find((r) => r.id === runId))
+  }
+
+  async startRun(input: import('./types').StartRunInput) {
+    // Local demo mode does not start Temporal — record a queued shell only.
+    const id = `run-local-${Date.now()}`
+    const now = new Date().toISOString()
+    const run = {
+      id,
+      title: input.title || 'Local run (demo mode — no Temporal)',
+      status: 'queued' as const,
+      objectives: input.objectives ?? [],
+      workspaceIds: input.workspaceIds,
+      temporalWorkflowId: '',
+      createdAt: now,
+      updatedAt: now,
+      jobIds: [] as string[],
+    }
+    this.state.runs = [run, ...this.state.runs]
+    return structuredClone(run)
   }
 
   async listJobs(runId?: string) {

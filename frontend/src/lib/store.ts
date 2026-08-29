@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getDemoAdapter } from '@/lib/api'
+import { getAdapter } from '@/lib/api'
 import { computeAgentMetrics, type NewGuardrailInput } from '@/lib/api/types'
 import type {
   Agent,
@@ -21,7 +21,9 @@ import type {
 interface DemoStore extends DemoState {
   hydrated: boolean
   hydrate: () => Promise<void>
+  clearAllData: () => Promise<void>
   ingestContext: (raw: string, source: 'paste' | 'upload') => Promise<ContextDocument>
+  startRun: (objectives?: string[], workspaceIds?: string[]) => Promise<void>
   decideApproval: (
     approvalId: string,
     decision: Exclude<ApprovalDecision, 'pending'>,
@@ -49,7 +51,7 @@ interface DemoStore extends DemoState {
 }
 
 async function snapshot(): Promise<DemoState> {
-  return getDemoAdapter().getState()
+  return getAdapter().getState()
 }
 
 export const useDemoStore = create<DemoStore>((set, get) => ({
@@ -71,37 +73,70 @@ export const useDemoStore = create<DemoStore>((set, get) => ({
     set({ ...state, hydrated: true })
   },
 
+  clearAllData: async () => {
+    const state = await getAdapter().clearAllData()
+    set({ ...state, hydrated: true })
+  },
+
   ingestContext: async (raw, source) => {
-    const doc = await getDemoAdapter().ingestContext(raw, source)
+    const doc = await getAdapter().ingestContext(raw, source)
     const state = await snapshot()
     set({ ...state })
     return doc
   },
 
+  startRun: async (objectives, workspaceIds) => {
+    const wsIds = workspaceIds?.length ? workspaceIds : get().workspaces.map((w) => w.id)
+    if (wsIds.length === 0) throw new Error('No workspaces — ingest context first')
+    await getAdapter().startRun({
+      title: objectives?.[0] || 'Company run',
+      objectives: objectives ?? ['Execute planned specialist jobs'],
+      workspaceIds: wsIds,
+      plan: [
+        {
+          job_type: 'github.create_issue',
+          agent_role: 'GitHubIssueManagerAgent',
+          requested_action: { title: '[agentsuite] run from console', body: 'Started from Runs UI' },
+        },
+        {
+          job_type: 'gmail.send_email',
+          agent_role: 'GmailCommsAgent',
+          requested_action: { subject: '[agentsuite] run from console', body: 'Started from Runs UI' },
+        },
+        {
+          job_type: 'calendar.create_event',
+          agent_role: 'CalendarSchedulerAgent',
+          requested_action: { summary: '[agentsuite] run from console' },
+        },
+      ],
+    })
+    set({ ...(await snapshot()) })
+  },
+
   decideApproval: async (approvalId, decision, editedPayload) => {
-    await getDemoAdapter().decideApproval(approvalId, decision, editedPayload)
+    await getAdapter().decideApproval(approvalId, decision, editedPayload)
     const state = await snapshot()
     set({ ...state })
   },
 
   updatePolicy: async (workspaceId, action, patch) => {
-    await getDemoAdapter().updatePolicy(workspaceId, action, patch)
+    await getAdapter().updatePolicy(workspaceId, action, patch)
     const state = await snapshot()
     set({ ...state })
   },
 
   addAgentGuardrail: async (agentId, input) => {
-    await getDemoAdapter().addAgentGuardrail(agentId, input)
+    await getAdapter().addAgentGuardrail(agentId, input)
     set({ ...(await snapshot()) })
   },
 
   updateAgentGuardrail: async (agentId, guardrailId, patch) => {
-    await getDemoAdapter().updateAgentGuardrail(agentId, guardrailId, patch)
+    await getAdapter().updateAgentGuardrail(agentId, guardrailId, patch)
     set({ ...(await snapshot()) })
   },
 
   removeAgentGuardrail: async (agentId, guardrailId) => {
-    await getDemoAdapter().removeAgentGuardrail(agentId, guardrailId)
+    await getAdapter().removeAgentGuardrail(agentId, guardrailId)
     set({ ...(await snapshot()) })
   },
 

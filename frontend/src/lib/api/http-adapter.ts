@@ -32,14 +32,25 @@ export class HttpAdapter implements ApiAdapter {
       headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
       ...init,
     })
+    if (res.status === 404) {
+      return undefined as T
+    }
     if (!res.ok) {
-      throw new Error(`HttpAdapter ${path} failed: ${res.status}`)
+      const body = await res.text().catch(() => '')
+      throw new Error(`HttpAdapter ${path} failed: ${res.status} ${body}`)
+    }
+    if (res.status === 204) {
+      return true as T
     }
     return (await res.json()) as T
   }
 
   getState(): Promise<DemoState> {
     return this.request<DemoState>('/demo/state')
+  }
+
+  clearAllData(): Promise<DemoState> {
+    return this.request<DemoState>('/demo/state', { method: 'DELETE' })
   }
 
   ingestContext(raw: string, source: 'paste' | 'upload'): Promise<ContextDocument> {
@@ -59,6 +70,19 @@ export class HttpAdapter implements ApiAdapter {
 
   getRun(runId: string): Promise<Run | undefined> {
     return this.request<Run | undefined>(`/runs/${runId}`)
+  }
+
+  startRun(input: import('./types').StartRunInput): Promise<Run> {
+    return this.request<Run>('/runs', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: input.title,
+        objectives: input.objectives ?? [],
+        workspace_ids: input.workspaceIds,
+        plan: input.plan ?? [],
+        signal: input.signal ?? {},
+      }),
+    })
   }
 
   listJobs(runId?: string): Promise<Job[]> {
@@ -105,7 +129,9 @@ export class HttpAdapter implements ApiAdapter {
   }
 
   listIntegrations(): Promise<IntegrationHealth[]> {
-    return this.request<IntegrationHealth[]>('/integrations/health')
+    return this.request<{ integrations?: IntegrationHealth[] } | IntegrationHealth[]>(
+      '/integrations/health',
+    ).then((body) => (Array.isArray(body) ? body : (body.integrations ?? [])))
   }
 
   listValidations(): Promise<ValidationOutcome[]> {

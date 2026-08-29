@@ -35,8 +35,11 @@ export function AgentStatusBadge({ status }: { status: AgentStatus }) {
     idle: 'default',
     disabled: 'warn',
     error: 'fail',
+    unsupported: 'warn',
   }
-  return <Badge variant={map[status]}>{status}</Badge>
+  const label =
+    status === 'unsupported' ? 'not supported — connect system to activate' : status
+  return <Badge variant={map[status]}>{label}</Badge>
 }
 
 export function HealthBadge({ status }: { status: IntegrationHealthStatus }) {

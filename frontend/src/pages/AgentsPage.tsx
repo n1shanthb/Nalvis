@@ -39,6 +39,11 @@ export function AgentsPage() {
             value: agents.filter((a) => a.status === 'idle').length,
           },
           {
+            label: 'Unsupported',
+            value: agents.filter((a) => a.status === 'unsupported').length,
+            tone: 'warn',
+          },
+          {
             label: 'Error',
             value: agents.filter((a) => a.status === 'error').length,
             tone: 'fail',

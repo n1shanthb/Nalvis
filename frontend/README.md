@@ -31,4 +31,4 @@ npm run build
 - `/context` — company KG ingest (blank until you paste/upload)
 - `/projects` — product projects (empty until control plane creates them)
 - `/projects/:id/...` — runs, approvals, policies, validation, agents
-- `/integrations` — connector health (empty until API reports)
+- `/integrations` — live GitHub/Jira/Gmail/Calendar health + config from `/api/integrations/health`

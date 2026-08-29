@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { Upload } from 'lucide-react'
+import { Trash2, Upload } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,9 +14,14 @@ export function ContextStudioPage() {
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const ingestContext = useDemoStore((s) => s.ingestContext)
+  const clearAllData = useDemoStore((s) => s.clearAllData)
   const docs = useDemoStore((s) => s.contextDocuments)
   const workspaces = useDemoStore((s) => s.workspaces)
+  const runs = useDemoStore((s) => s.runs)
+  const agents = useDemoStore((s) => s.agents)
   const latest = docs[0]
+  const hasData =
+    workspaces.length > 0 || docs.length > 0 || runs.length > 0 || agents.length > 0
 
   const metrics = useMemo(
     () => [
@@ -58,11 +63,34 @@ export function ContextStudioPage() {
     await runParse('upload', text)
   }
 
+  async function onClearAll() {
+    const ok = window.confirm(
+      'Delete all console data?\n\nThis clears workspaces, agents, runs, jobs, approvals, validations, policies, and context documents. Integrations credentials are not touched.',
+    )
+    if (!ok) return
+    setBusy(true)
+    setError(null)
+    try {
+      await clearAllData()
+      setRaw('')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Clear failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div>
       <PageHeader
         title="Context Studio"
         description="Upload company KG JSON or paste text. No sample payload is preloaded — empty means nothing ingested yet."
+        actions={
+          <Button variant="danger" disabled={busy || !hasData} onClick={() => void onClearAll()}>
+            <Trash2 className="h-4 w-4" aria-hidden />
+            Clear all data
+          </Button>
+        }
       />
 
       <MetricStrip items={metrics} />
