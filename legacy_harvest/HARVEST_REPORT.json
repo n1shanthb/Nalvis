@@ -1,0 +1,165 @@
+{
+  "destination": "E:\\agentsuite\\legacy_harvest",
+  "copied_by_section": {
+    "1_contracts": [
+      "src/aip/__init__.py",
+      "src/aip/contracts/__init__.py",
+      "src/aip/contracts/capability_webhooks.py",
+      "src/aip/contracts/graph.py",
+      "src/aip/contracts/llm.py",
+      "src/aip/contracts/models.py",
+      "src/aip/contracts/runtime.py",
+      "src/aip/contracts/spec_validation.py",
+      "src/aip/contracts/spec_version.py",
+      "src/aip/contracts/specification.py",
+      "src/aip/contracts/tools.py"
+    ],
+    "2_validation": [
+      "src/aip/validation/__init__.py",
+      "src/aip/validation/claims.py",
+      "src/aip/validation/engine.py",
+      "src/aip/validation/evidence.py",
+      "src/aip/validation/guardrail_bypass.py",
+      "src/aip/validation/models.py",
+      "src/aip/validation/response_watch.py",
+      "src/aip/validation/store.py",
+      "src/aip/validation/verify_github.py",
+      "src/aip/validation/verify_gmail.py"
+    ],
+    "3_guardrails": [
+      "src/aip/guardrails/__init__.py",
+      "src/aip/guardrails/action.py",
+      "src/aip/guardrails/decisions.py",
+      "src/aip/guardrails/engine.py",
+      "src/aip/guardrails/errors.py",
+      "src/aip/guardrails/identity.py",
+      "src/aip/guardrails/middleware.py",
+      "src/aip/guardrails/models.py",
+      "src/aip/guardrails/store.py"
+    ],
+    "4_webhooks": [
+      "src/aip/webhooks/__init__.py",
+      "src/aip/webhooks/bind.py",
+      "src/aip/webhooks/catalog.py",
+      "src/aip/webhooks/github_inventory.py",
+      "src/aip/webhooks/gmail_inventory.py",
+      "src/aip/webhooks/jira_inventory.py",
+      "src/aip/webhooks/match.py",
+      "src/aip/webhooks/models.py"
+    ],
+    "5_connected_systems": [
+      "src/aip/connected_systems/__init__.py",
+      "src/aip/connected_systems/providers/__init__.py",
+      "src/aip/connected_systems/providers/calendar.py",
+      "src/aip/connected_systems/providers/generic_mcp.py",
+      "src/aip/connected_systems/providers/github.py",
+      "src/aip/connected_systems/providers/jira.py",
+      "src/aip/connected_systems/registry.py"
+    ],
+    "6_ingress_runtime": [
+      "src/aip/github_router.py",
+      "src/aip/integrations/__init__.py",
+      "src/aip/integrations/github_app.py",
+      "src/aip/jira_router.py",
+      "src/aip/runtime/__init__.py",
+      "src/aip/runtime/github_execute.py",
+      "src/aip/runtime/jira_execute.py",
+      "src/aip/web/__init__.py",
+      "src/aip/web/api_github.py",
+      "src/aip/web/api_jira.py",
+      "src/aip/web/tunnel.py"
+    ],
+    "7_gmail_calendar": [
+      "src/aip/gmail_router.py",
+      "src/aip/integrations/gmail_oauth.py",
+      "src/aip/tools/__init__.py",
+      "src/aip/tools/calendar.py",
+      "src/aip/tools/gmail.py",
+      "src/aip/tools/registry.py",
+      "src/aip/web/api_gmail.py",
+      "src/aip/web/calendar_grid.py"
+    ],
+    "8_frontend": [
+      "frontend/src/components/app-shell.tsx",
+      "frontend/src/components/approval-snackbar.tsx",
+      "frontend/src/components/loading-overlay.tsx",
+      "frontend/src/components/ui.tsx",
+      "frontend/src/config/env.ts",
+      "frontend/src/features/agents/pages.tsx",
+      "frontend/src/features/projects/components/agent-profile-modal.tsx",
+      "frontend/src/features/projects/guardrail-rails.ts",
+      "frontend/src/features/projects/pages/guardrail-discovery.tsx",
+      "frontend/src/features/projects/pages/guardrails-page.tsx",
+      "frontend/src/features/runtime/pages.tsx",
+      "frontend/src/hooks/use-active-project.ts",
+      "frontend/src/lib/api.ts",
+      "frontend/src/lib/api/client.ts",
+      "frontend/src/lib/api/contracts.ts",
+      "frontend/src/lib/api/errors.ts",
+      "frontend/src/lib/format.ts",
+      "frontend/src/lib/query.tsx",
+      "frontend/src/main.tsx",
+      "frontend/src/pages/agent-detail-page.tsx",
+      "frontend/src/pages/agents-page.tsx",
+      "frontend/src/pages/approvals-page.tsx",
+      "frontend/src/pages/calendar-page.tsx",
+      "frontend/src/pages/dashboard-page.tsx",
+      "frontend/src/pages/department-page.tsx",
+      "frontend/src/pages/departments-page.tsx",
+      "frontend/src/pages/discovery-page.tsx",
+      "frontend/src/pages/guardrails-page.tsx",
+      "frontend/src/pages/mcp-detail-page.tsx",
+      "frontend/src/pages/mcps-page.tsx",
+      "frontend/src/pages/monitor-page.tsx",
+      "frontend/src/pages/organization-page.tsx",
+      "frontend/src/pages/project-page.tsx",
+      "frontend/src/pages/runtime-page.tsx",
+      "frontend/src/pages/validation-page.tsx",
+      "frontend/src/styles.css"
+    ]
+  },
+  "copied_count": 100,
+  "missing": [],
+  "skipped": [
+    [
+      "frontend/src/pages/lab-page.tsx",
+      "imported by frontend/src/main.tsx; lab/jinja/template surface excluded"
+    ],
+    [
+      "src/aip/contracts/__pycache__/__init__.cpython-311.pyc",
+      "local DB/cache/build artifact excluded"
+    ],
+    [
+      "src/aip/contracts/__pycache__/capability_webhooks.cpython-311.pyc",
+      "local DB/cache/build artifact excluded"
+    ],
+    [
+      "src/aip/contracts/__pycache__/graph.cpython-311.pyc",
+      "local DB/cache/build artifact excluded"
+    ],
+    [
+      "src/aip/contracts/__pycache__/llm.cpython-311.pyc",
+      "local DB/cache/build artifact excluded"
+    ],
+    [
+      "src/aip/contracts/__pycache__/models.cpython-311.pyc",
+      "local DB/cache/build artifact excluded"
+    ],
+    [
+      "src/aip/contracts/__pycache__/spec_validation.cpython-311.pyc",
+      "local DB/cache/build artifact excluded"
+    ],
+    [
+      "src/aip/contracts/__pycache__/spec_version.cpython-311.pyc",
+      "local DB/cache/build artifact excluded"
+    ],
+    [
+      "src/aip/contracts/__pycache__/specification.cpython-311.pyc",
+      "local DB/cache/build artifact excluded"
+    ],
+    [
+      "src/aip/contracts/__pycache__/tools.cpython-311.pyc",
+      "local DB/cache/build artifact excluded"
+    ]
+  ]
+}

@@ -1,0 +1,1 @@
+export { AgentsPage as default } from "../features/agents/pages";
