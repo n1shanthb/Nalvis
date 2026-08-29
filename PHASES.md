@@ -16,25 +16,22 @@ This document splits the system into **incremental phases** so we can plan, impl
 ### Goal
 Systematically port the **good, working modules** from the previous project (where GitHub/Jira MCP + native Gmail/Calendar already work) into this clean rebuild, without importing legacy orchestration patterns.
 
-### Deliverables
-- **Port-as-is** modules (copied with minimal edits):
-  - contracts/spec boundary
-  - validation models + evidence structures
-  - policy/guardrails decision models
-  - webhook catalog/binding core
-  - frontend API client pattern (if we reuse UI)
-- **Port-with-refactor** modules (lift interfaces/logic, rewrite the runtime glue):
-  - inbound job semantics (re-implemented on Temporal)
-  - approvals store/semantics (re-implemented with Temporal signals)
-  - connected-system providers (normalize GitHub/Jira auth and tool discovery)
-- A written “do not port” list to avoid bringing slop forward.
+### Deliverables (as implemented)
+- Quarantine: `legacy_harvest/` (reference only)
+- Portable extract: `portable_core/` — see `portable_core/PORT_LEDGER.md`
+- **Accepted cores**: contracts, guardrail engine/models, validation claims + rewrites, webhook inventories/match, in-memory catalog/bind
+- **Connectors**: GitHub MCP provider, Jira seed MCP provider, native Gmail/Calendar tools + OAuth helpers
+- **Boundary gates**: reject `app_context` / `inbound` / `persistence` / FastAPI routers / Temporal-less worker loops
+- **Verdict mapping**: legacy → `PASS` / `FAIL` / `NO_EVIDENCE` (`aip.validation.verdicts`)
+- Contract tests: `portable_core/tests/test_portable_core.py`
 
 ### Definition of done
-- The new repo contains the selected modules behind clean interfaces, and **no legacy background loops** or in-process orchestration remains.
-- Any verdict taxonomy is normalized to the canonical platform contract: PASS / FAIL / NO_EVIDENCE.
+- `portable_core` imports without forbidden legacy modules (static scan in tests).
+- Verdict taxonomy normalized to PASS / FAIL / NO_EVIDENCE.
+- `PORT_LEDGER.md` documents accept / reject / rewrite.
 
 ### Demo
-- “Show the ported modules compiling and wired into stubs (no external side effects yet).”
+- “Run portable_core contract tests; show PORT_LEDGER accept/reject lists.”
 
 ## Phase 0 — Repo scaffold + contracts (foundation)
 ### Goal
@@ -244,6 +241,7 @@ Ship the **operations console** UI and the “engineering maturity” surfaces: 
   - Phase 1 durability + HIL pause/resume semantics
   - Phase 3 GitHub integration with evidence-based validation (fastest impressive demo)
   - Phase 8 agent success metrics + approvals inbox polish
+- **Active goal (post Phase 0A):** connect all 4 systems live (GitHub+Jira MCP, Gmail+Calendar native) with cloudflared webhooks — see `CONNECT.md` and `apps/api/`.
 
 ## Per-phase planning checklist (copy/paste)
 - **Authority alignment**: which headings in `AUTHORITY.md` does this phase implement?
