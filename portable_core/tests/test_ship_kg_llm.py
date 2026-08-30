@@ -278,3 +278,27 @@ def test_recommended_agent_floor_plus_discovery(monkeypatch: pytest.MonkeyPatch)
     ]
     assert floor, "recommendation floor must emit origin signals"
     assert any("mail-1" in path or "mail" in path for p in floor for path in p.origin_paths)
+
+
+EX3_PATH = REPO / "ex3.json"
+
+
+def test_ex3_graph_products_exclude_company_and_repo_names(monkeypatch: pytest.MonkeyPatch) -> None:
+    """ex3: company is not a product; repo slugs are not duplicated as products."""
+    if not EX3_PATH.exists():
+        pytest.skip("ex3.json fixture missing")
+    monkeypatch.setattr(
+        "aip.kg.inventory.probe_connector_availability",
+        lambda: __import__("aip.kg.inventory", fromlist=["ConnectorAvailability"]).ConnectorAvailability(
+            available={"github", "gmail", "calendar"},
+            details={},
+        ),
+    )
+    from aip.kg.inventory import build_inventory_from_kg, parse_preview_from_inventory
+
+    inv = build_inventory_from_kg(EX3_PATH.read_text(encoding="utf-8"))
+    preview = parse_preview_from_inventory(inv)
+    assert inv.company_name == "HelioStack Inc"
+    assert preview["products"] == ["Resume Analytics", "Ops Console"]
+    assert set(preview["repos"]) == {"n1shanthb/analytics-resume", "heliostack/ops-console"}
+    assert preview["workspacesDerived"] == 2

@@ -365,6 +365,14 @@ def _is_repo_node(et: str, src: str) -> bool:
     return False
 
 
+def _is_company_entity_type(et: str) -> bool:
+    return et in ("organization", "org", "company")
+
+
+def _is_workspace_entity_type(et: str) -> bool:
+    return et in ("product", "workspace", "project")
+
+
 def _inventory_from_graph(
     data: dict[str, Any],
     availability: ConnectorAvailability,
@@ -394,11 +402,15 @@ def _inventory_from_graph(
         if not isinstance(n, dict):
             continue
         et = _node_entity_type(n)
-        if et in ("product", "workspace", "project", "organization", "org"):
-            pname = _node_name(n)
-            if pname and pname not in product_set:
-                product_set.add(pname)
-                products.append(pname)
+        name = _node_name(n)
+        if _is_company_entity_type(et):
+            if name and not company:
+                company = name
+            continue
+        if _is_workspace_entity_type(et):
+            if name and name not in product_set:
+                product_set.add(name)
+                products.append(name)
 
     for e in edges:
         if not isinstance(e, dict):
@@ -409,8 +421,12 @@ def _inventory_from_graph(
             if not target:
                 continue
             tet = _node_entity_type(target)
-            if tet in ("product", "workspace", "project", "organization", "org"):
-                pname = _node_name(target)
+            pname = _node_name(target)
+            if _is_company_entity_type(tet):
+                if pname and not company:
+                    company = pname
+                continue
+            if _is_workspace_entity_type(tet):
                 if pname and pname not in product_set:
                     product_set.add(pname)
                     products.append(pname)
@@ -471,13 +487,6 @@ def _inventory_from_graph(
         else:
             products = ["default"]
             product_set.add("default")
-    elif seen_repos:
-        # Also surface repo-named products when graph only had org/group
-        for slug in sorted(seen_repos):
-            proj = slug.split("/", 1)[-1]
-            if proj and proj not in product_set and len(products) < 12:
-                product_set.add(proj)
-                products.append(proj)
 
     if not company and products:
         company = products[0]
@@ -600,8 +609,10 @@ def _inventory_from_graph(
             kind = "stakeholder"
         elif et in ("document", "file", "policy", "commit", "gitfile", "gitcommit"):
             kind = "document" if et in ("document", "file", "policy", "gitfile") else "other"
-        elif et in ("product", "workspace", "project", "organization", "org"):
-            kind = "product"
+        elif et in ("product", "workspace", "project", "organization", "org", "company"):
+            kind = "product" if _is_workspace_entity_type(et) else "other"
+            if _is_company_entity_type(et):
+                kind = "other"
             resource_name = name
 
         blob = f"{name} {et} {src} {attrs.get('summary') or ''}".lower()
@@ -730,6 +741,10 @@ def parse_preview_from_inventory(inv: CompanyInventory) -> dict[str, Any]:
     jira = [r.name for r in inv.resources if r.kind == "jira_project"]
     cals = [r.name for r in inv.resources if r.kind == "calendar"]
     emails = [r.name for r in inv.resources if r.kind in ("email_group", "email")]
+    # Prefer actual addresses; thread subjects without @ are secondary noise in UI preview.
+    emails = sorted({e for e in emails if "@" in e}) + [
+        e for e in emails if "@" not in e and e not in {x for x in emails if "@" in x}
+    ]
     stakes = [r.name for r in inv.resources if r.kind == "stakeholder"]
     attention = [
         {

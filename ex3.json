@@ -1,0 +1,443 @@
+{
+  "company": "HelioStack Inc",
+  "nodes": [
+    {
+      "id": "c0000001-0000-4000-8000-000000000001",
+      "name": "HelioStack Inc",
+      "val": 18,
+      "type": "organization",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "HelioStack Inc builds analytics and internal automation products. The company standardizes on GitHub for source control, Gmail for customer and ops comms, Google Calendar for release planning, and AWS for cloud infrastructure. Two active product lines: Resume Analytics and Ops Console."
+    },
+    {
+      "id": "p0000001-0000-4000-8000-000000000001",
+      "name": "Resume Analytics",
+      "val": 12,
+      "type": "project",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "Resume Analytics is a customer-facing resume scoring product. Primary repo: github.com/n1shanthb/analytics-resume. Uses Gmail list eng-releases@heliostack.io for release announcements and calendar Sprint Planning for bi-weekly planning."
+    },
+    {
+      "id": "p0000002-0000-4000-8000-000000000002",
+      "name": "Ops Console",
+      "val": 12,
+      "type": "project",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "Ops Console is the internal agentic operations dashboard. Primary repo: github.com/heliostack/ops-console. Uses Gmail ops-alerts@heliostack.io for on-call threads and calendar Release Review for weekly ship reviews."
+    },
+    {
+      "id": "r0000001-0000-4000-8000-000000000001",
+      "name": "analytics-resume",
+      "val": 9,
+      "type": "Entity",
+      "group_id": "heliostack",
+      "source_id": "github:repo:heliostack-main",
+      "source_type": "github",
+      "need_attention": false,
+      "summary": "GitHub repository n1shanthb/analytics-resume \u2014 clone from github.com/n1shanthb/analytics-resume.git. Resume Analytics backend and scoring pipeline. Issues and PRs tracked via GitHub MCP."
+    },
+    {
+      "id": "r0000002-0000-4000-8000-000000000002",
+      "name": "ops-console",
+      "val": 9,
+      "type": "Entity",
+      "group_id": "heliostack",
+      "source_id": "github:repo:heliostack-main",
+      "source_type": "github",
+      "need_attention": false,
+      "summary": "GitHub repository heliostack/ops-console \u2014 clone from github.com/heliostack/ops-console.git. React ops console wired to AgentSuite control plane APIs."
+    },
+    {
+      "id": "s0000001-0000-4000-8000-000000000001",
+      "name": "GitHub",
+      "val": 6,
+      "type": "Entity",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "Company-wide GitHub MCP integration for issues, PRs, and repo automation. Used by both Resume Analytics and Ops Console projects."
+    },
+    {
+      "id": "s0000002-0000-4000-8000-000000000002",
+      "name": "Gmail",
+      "val": 6,
+      "type": "Entity",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "Native Gmail OAuth integration for outbound mail and inbound webhook signals. Distribution lists: eng-releases@heliostack.io and ops-alerts@heliostack.io."
+    },
+    {
+      "id": "s0000003-0000-4000-8000-000000000003",
+      "name": "Google Calendar",
+      "val": 5,
+      "type": "Entity",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "Native Google Calendar integration for sprint planning, release reviews, and standups across both product teams."
+    },
+    {
+      "id": "s0000004-0000-4000-8000-000000000004",
+      "name": "AWS",
+      "val": 7,
+      "type": "Entity",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "AWS account 123456789012 hosts S3 artifact storage and Lambda deploy runners. Not yet wired as an executable AgentSuite connector in v1 \u2014 discovery only."
+    },
+    {
+      "id": "m0000001-0000-4000-8000-000000000001",
+      "name": "eng-releases@heliostack.io",
+      "val": 4,
+      "type": "email",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "mail",
+      "need_attention": false,
+      "summary": "Release announcement mailing list for Resume Analytics. Contact: nishanth@heliostack.io. Recommended automation: GmailCommsAgent sends release notes after GitHub tag."
+    },
+    {
+      "id": "m0000002-0000-4000-8000-000000000002",
+      "name": "ops-alerts@heliostack.io",
+      "val": 4,
+      "type": "email",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "mail",
+      "need_attention": false,
+      "summary": "On-call and incident thread list for Ops Console. Contact: priya@heliostack.io."
+    },
+    {
+      "id": "m0000003-0000-4000-8000-000000000003",
+      "name": "Customer onboarding delay",
+      "val": 6,
+      "type": "email",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "mail",
+      "need_attention": true,
+      "summary": "Inbound Gmail thread from customer@example.com: onboarding API latency blocking launch. Recommended agent: GitHubIssueManagerAgent to track fix in github.com/n1shanthb/analytics-resume. Also schedule follow-up on Google Calendar."
+    },
+    {
+      "id": "cal00001-0000-4000-8000-000000000001",
+      "name": "Sprint Planning \u2014 Resume Analytics",
+      "val": 3,
+      "type": "meeting",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "calendar",
+      "need_attention": false,
+      "summary": "Bi-weekly sprint planning calendar event for Resume Analytics. Attendees: nishanth@heliostack.io, priya@heliostack.io. CalendarSchedulerAgent can book follow-ups."
+    },
+    {
+      "id": "cal00002-0000-4000-8000-000000000002",
+      "name": "Release Review \u2014 Ops Console",
+      "val": 3,
+      "type": "meeting",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "calendar",
+      "need_attention": false,
+      "summary": "Weekly release review for Ops Console on Google Calendar. Links GitHub PRs from heliostack/ops-console to ship checklist."
+    },
+    {
+      "id": "cal00003-0000-4000-8000-000000000003",
+      "name": "HelioStack Engineering Standup",
+      "val": 2,
+      "type": "meeting",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "calendar",
+      "need_attention": false,
+      "summary": "Daily standup for both Resume Analytics and Ops Console teams."
+    },
+    {
+      "id": "aws00001-0000-4000-8000-000000000001",
+      "name": "AWS Account 123456789012",
+      "val": 5,
+      "type": "Entity",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "Primary AWS account for HelioStack. Region us-east-1. Hosts S3 and Lambda resources for both projects."
+    },
+    {
+      "id": "aws00002-0000-4000-8000-000000000002",
+      "name": "heliostack-artifacts",
+      "val": 4,
+      "type": "Entity",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "S3 bucket heliostack-artifacts in AWS account 123456789012. Stores build artifacts from github.com/heliostack/ops-console CI."
+    },
+    {
+      "id": "aws00003-0000-4000-8000-000000000003",
+      "name": "deploy-runner",
+      "val": 4,
+      "type": "Entity",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": true,
+      "summary": "AWS Lambda function deploy-runner packages releases to S3. Automation opportunity: unsupported AWS deploy agent until connector ships."
+    },
+    {
+      "id": "u0000001-0000-4000-8000-000000000001",
+      "name": "Nishanth B",
+      "val": 3,
+      "type": "person",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "Product owner for Resume Analytics. Email: nishanth@heliostack.io."
+    },
+    {
+      "id": "u0000002-0000-4000-8000-000000000002",
+      "name": "Priya K",
+      "val": 3,
+      "type": "person",
+      "group_id": "heliostack",
+      "source_id": "upload",
+      "source_type": "upload",
+      "need_attention": false,
+      "summary": "Engineering lead for Ops Console. Email: priya@heliostack.io."
+    }
+  ],
+  "links": [
+    {
+      "source": "p0000001-0000-4000-8000-000000000001",
+      "target": "c0000001-0000-4000-8000-000000000001",
+      "relation_type": "BELONGS_TO",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "p0000002-0000-4000-8000-000000000002",
+      "target": "c0000001-0000-4000-8000-000000000001",
+      "relation_type": "BELONGS_TO",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "r0000001-0000-4000-8000-000000000001",
+      "target": "p0000001-0000-4000-8000-000000000001",
+      "relation_type": "BELONGS_TO",
+      "group_id": "heliostack",
+      "source_id": "github:repo:heliostack-main",
+      "source_type": "github"
+    },
+    {
+      "source": "r0000002-0000-4000-8000-000000000002",
+      "target": "p0000002-0000-4000-8000-000000000002",
+      "relation_type": "BELONGS_TO",
+      "group_id": "heliostack",
+      "source_id": "github:repo:heliostack-main",
+      "source_type": "github"
+    },
+    {
+      "source": "p0000001-0000-4000-8000-000000000001",
+      "target": "s0000001-0000-4000-8000-000000000001",
+      "relation_type": "USES",
+      "group_id": "heliostack",
+      "source_id": "github:repo:heliostack-main",
+      "source_type": "github"
+    },
+    {
+      "source": "p0000002-0000-4000-8000-000000000002",
+      "target": "s0000001-0000-4000-8000-000000000001",
+      "relation_type": "USES",
+      "group_id": "heliostack",
+      "source_id": "github:repo:heliostack-main",
+      "source_type": "github"
+    },
+    {
+      "source": "p0000001-0000-4000-8000-000000000001",
+      "target": "s0000002-0000-4000-8000-000000000002",
+      "relation_type": "USES",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "p0000002-0000-4000-8000-000000000002",
+      "target": "s0000002-0000-4000-8000-000000000002",
+      "relation_type": "USES",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "p0000001-0000-4000-8000-000000000001",
+      "target": "s0000003-0000-4000-8000-000000000003",
+      "relation_type": "USES",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "p0000002-0000-4000-8000-000000000002",
+      "target": "s0000003-0000-4000-8000-000000000003",
+      "relation_type": "USES",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "c0000001-0000-4000-8000-000000000001",
+      "target": "s0000004-0000-4000-8000-000000000004",
+      "relation_type": "USES",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "m0000001-0000-4000-8000-000000000001",
+      "target": "p0000001-0000-4000-8000-000000000001",
+      "relation_type": "BELONGS_TO",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "m0000002-0000-4000-8000-000000000002",
+      "target": "p0000002-0000-4000-8000-000000000002",
+      "relation_type": "BELONGS_TO",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "m0000003-0000-4000-8000-000000000003",
+      "target": "p0000001-0000-4000-8000-000000000001",
+      "relation_type": "RELATED_TO",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "cal00001-0000-4000-8000-000000000001",
+      "target": "p0000001-0000-4000-8000-000000000001",
+      "relation_type": "SCHEDULED_FOR",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "cal00002-0000-4000-8000-000000000002",
+      "target": "p0000002-0000-4000-8000-000000000002",
+      "relation_type": "SCHEDULED_FOR",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "cal00003-0000-4000-8000-000000000003",
+      "target": "c0000001-0000-4000-8000-000000000001",
+      "relation_type": "SCHEDULED_FOR",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "aws00001-0000-4000-8000-000000000001",
+      "target": "c0000001-0000-4000-8000-000000000001",
+      "relation_type": "OWNED_BY",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "aws00002-0000-4000-8000-000000000002",
+      "target": "aws00001-0000-4000-8000-000000000001",
+      "relation_type": "PART_OF",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "aws00003-0000-4000-8000-000000000003",
+      "target": "aws00001-0000-4000-8000-000000000001",
+      "relation_type": "PART_OF",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "aws00002-0000-4000-8000-000000000002",
+      "target": "r0000002-0000-4000-8000-000000000002",
+      "relation_type": "STORES_ARTIFACTS_FROM",
+      "group_id": "heliostack",
+      "source_id": "github:repo:heliostack-main",
+      "source_type": "github"
+    },
+    {
+      "source": "u0000001-0000-4000-8000-000000000001",
+      "target": "p0000001-0000-4000-8000-000000000001",
+      "relation_type": "OWNS",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "u0000002-0000-4000-8000-000000000002",
+      "target": "p0000002-0000-4000-8000-000000000002",
+      "relation_type": "OWNS",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "u0000001-0000-4000-8000-000000000001",
+      "target": "m0000001-0000-4000-8000-000000000001",
+      "relation_type": "SUBSCRIBED_TO",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "u0000002-0000-4000-8000-000000000002",
+      "target": "m0000002-0000-4000-8000-000000000002",
+      "relation_type": "SUBSCRIBED_TO",
+      "group_id": "heliostack",
+      "source_id": null,
+      "source_type": null
+    },
+    {
+      "source": "m0000003-0000-4000-8000-000000000003",
+      "target": "r0000001-0000-4000-8000-000000000001",
+      "relation_type": "REFERENCES",
+      "group_id": "heliostack",
+      "source_id": "github:repo:heliostack-main",
+      "source_type": "github"
+    },
+    {
+      "source": "cal00002-0000-4000-8000-000000000002",
+      "target": "r0000002-0000-4000-8000-000000000002",
+      "relation_type": "TRACKS",
+      "group_id": "heliostack",
+      "source_id": "github:repo:heliostack-main",
+      "source_type": "github"
+    }
+  ]
+}
