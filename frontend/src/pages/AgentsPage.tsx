@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader, MetricStrip, EmptyState } from '@/components/shared/page'
 import { AgentStatusBadge } from '@/components/shared/status'
-import { formatPercent, formatRelative } from '@/lib/utils'
+import { formatPercent, formatRelative, agentDisplayName } from '@/lib/utils'
 import { useDemoStore } from '@/lib/store'
 import { useProjectData } from '@/lib/useProjectData'
 import type { ValidationVerdict } from '@/lib/demo/models'
@@ -71,7 +71,7 @@ export function AgentsPage() {
                         to={`/projects/${projectId}/agents/${agent.id}`}
                         className="text-[var(--color-accent)] hover:underline"
                       >
-                        {agent.name}
+                        {agentDisplayName(agent.name, workspace.name)}
                       </Link>
                     </CardTitle>
                     <div className="mt-1 text-xs text-[var(--color-muted)]">{agent.role}</div>

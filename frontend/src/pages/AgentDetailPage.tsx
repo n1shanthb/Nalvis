@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { PageHeader, MetricStrip, EmptyState } from '@/components/shared/page'
 import { AgentStatusBadge, JobStatusBadge, VerdictBadge } from '@/components/shared/status'
-import { formatPercent, formatRelative } from '@/lib/utils'
+import { formatPercent, formatRelative, agentDisplayName } from '@/lib/utils'
 import { useDemoStore } from '@/lib/store'
 import { useProjectData } from '@/lib/useProjectData'
 import type { GuardrailMode } from '@/lib/demo/models'
@@ -100,7 +100,7 @@ export function AgentDetailPage() {
   return (
     <div>
       <PageHeader
-        title={agent.name}
+        title={agentDisplayName(agent.name, workspace.name)}
         description={`${agent.role} · ${workspace.name}`}
         actions={<AgentStatusBadge status={agent.status} />}
       />

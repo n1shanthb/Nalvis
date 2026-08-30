@@ -21,3 +21,12 @@ export function formatRelative(iso: string): string {
 export function formatPercent(n: number): string {
   return `${Math.round(n * 100)}%`
 }
+
+/** Drop workspace/product prefix from synthesized agent names in project-scoped UI. */
+export function agentDisplayName(name: string, workspaceName?: string): string {
+  const prefix = workspaceName ? `${workspaceName} ` : ''
+  if (prefix && name.startsWith(prefix)) {
+    return name.slice(prefix.length)
+  }
+  return name
+}

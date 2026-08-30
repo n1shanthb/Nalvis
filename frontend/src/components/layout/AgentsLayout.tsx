@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useParams } from 'react-router-dom'
 import { Bot } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, agentDisplayName } from '@/lib/utils'
 import { useProjectData } from '@/lib/useProjectData'
 import { AgentStatusBadge } from '@/components/shared/status'
 import { EmptyState } from '@/components/shared/page'
@@ -68,7 +68,7 @@ export function AgentsLayout() {
                       a.id === agentId ? 'text-[var(--color-accent)]' : 'text-[var(--color-fg)]',
                     )}
                   >
-                    {a.name}
+                    {agentDisplayName(a.name, workspace.name)}
                   </div>
                   <div className="mt-0.5 truncate text-[11px] text-[var(--color-muted)]">
                     {a.role}
