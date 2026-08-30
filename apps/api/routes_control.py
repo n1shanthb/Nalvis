@@ -99,6 +99,19 @@ def clear_state() -> dict[str, Any]:
         return build_demo_state(session, integrations=integrations)
 
 
+@router.get("/llm/status")
+def llm_status() -> dict[str, Any]:
+    """Whether Director/synthesizer can use LLM (OpenAI or OpenRouter). No secrets."""
+    from aip.llm.client import llm_configured, resolve_llm_base_url, resolve_llm_model
+
+    return {
+        "configured": llm_configured(),
+        "baseUrlSet": bool(resolve_llm_base_url()),
+        "model": resolve_llm_model(),
+        "note": "Start run with empty plan[] uses Director LLM routing when configured.",
+    }
+
+
 @router.post("/context/ingest")
 def context_ingest(body: IngestBody) -> dict[str, Any]:
     _init()
