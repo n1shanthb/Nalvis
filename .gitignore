@@ -3,6 +3,7 @@ legacy_harvest/
 AUTHORITY.md
 goallol.md
 goalship.md
+phases.md
 portable_core/
 __pycache__/
 *.pyc
@@ -13,3 +14,4 @@ data/generated/
 data/smoke_proof/
 .venv/
 venv/
+ex1.json
