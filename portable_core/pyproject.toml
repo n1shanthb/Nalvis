@@ -1,0 +1,22 @@
+[project]
+name = "agentsuite-portable-core"
+version = "0.1.0"
+description = "Phase 0A portable core extracted from legacy harvest"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.0",
+  "pydantic-settings>=2.0",
+  "httpx>=0.27",
+  "PyYAML>=6.0",
+  "PyJWT[crypto]>=2.8",
+  "temporalio>=1.7.0",
+  "redis>=5.0",
+  "asyncpg>=0.29",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -3,8 +3,8 @@ legacy_harvest/
 AUTHORITY.md
 goallol.md
 goalship.md
-phases.md
-portable_core/
+PHASES.md
+.cursor/
 __pycache__/
 *.pyc
 .pytest_cache/

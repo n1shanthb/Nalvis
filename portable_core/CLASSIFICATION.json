@@ -1,0 +1,40 @@
+{
+  "destination": "e:\\agentsuite\\portable_core",
+  "source": "e:\\agentsuite\\legacy_harvest",
+  "copied_as_is_count": 31,
+  "rewritten": [
+    "src/aip/config.py",
+    "src/aip/tools/base.py",
+    "src/aip/tools/gmail.py",
+    "src/aip/validation/models.py",
+    "src/aip/validation/verdicts.py",
+    "src/aip/validation/evidence.py",
+    "src/aip/validation/engine.py",
+    "src/aip/validation/guardrail_bypass.py",
+    "src/aip/webhooks/catalog.py",
+    "src/aip/webhooks/bind.py",
+    "src/aip/connected_systems/models.py",
+    "src/aip/connected_systems/protocol.py",
+    "src/aip/connected_systems/presets.py",
+    "src/aip/connected_systems/providers/jira.py",
+    "src/aip/connected_systems/providers/generic_mcp.py",
+    "src/aip/interfaces/policy.py",
+    "src/aip/interfaces/validation.py",
+    "src/aip/interfaces/webhooks.py",
+    "src/aip/interfaces/connectors.py"
+  ],
+  "rejected": [
+    {"path": "guardrails/store.py", "reason": "aip.persistence.db"},
+    {"path": "guardrails/middleware.py", "reason": "aip.app_context"},
+    {"path": "validation/store.py", "reason": "aip.persistence.db"},
+    {"path": "validation/response_watch.py", "reason": "aip.app_context"},
+    {"path": "connected_systems/registry.py", "reason": "aip.persistence.db; replaced by presets.py"},
+    {"path": "web/api_*.py", "reason": "FastAPI ingress deferred"},
+    {"path": "*_router.py", "reason": "orchestration coupling deferred"},
+    {"path": "web/tunnel.py", "reason": "rebuild in clean API layer"},
+    {"path": "runtime/*", "reason": "executor coupling deferred"},
+    {"path": "frontend/**", "reason": "out of Phase 0A connectors scope"}
+  ],
+  "tests": "12 passed",
+  "authority_verdicts": ["PASS", "FAIL", "NO_EVIDENCE"]
+}
