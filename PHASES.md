@@ -237,9 +237,10 @@ Ship the **operations console** UI and the “engineering maturity” surfaces: 
 
 ---
 
-## Active goal (post Phase 0A connectors)
-- Phase 0 infra (Postgres + Redis + Temporal) — see `INFRA_EVIDENCE.md` / `infra/README.md`
-- Next: single-tenant bootstrap + KG graph ingest (not started in infra goal)
+## Active goal
+- **Spine (done):** [`goallol.md`](goallol.md) — control plane + Temporal + GitHub/Gmail/Calendar writes + validation + HIL + HttpAdapter
+- **Ship-ready (active):** [`goalship.md`](goalship.md) — OpenRouter LLM, inbound Gmail→Director, rich KG, full v1 job types (incl. Jira), cross-system path, observability, console-only DoD
+- Infra: `INFRA_EVIDENCE.md` / `infra/README.md`
 
 ## Per-phase planning checklist (copy/paste)
 - **Authority alignment**: which headings in `AUTHORITY.md` does this phase implement?

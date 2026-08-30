@@ -281,11 +281,27 @@ Frontend is not a chat UI. It is an operations console for runs/jobs/approvals/v
 
 **Anti-fake-data rule:** The ops console must not ship synthetic/seeded operational records (fake runs, agents, approvals, integrations health, or validation outcomes). Empty lists and explicit empty/error states are required when the control plane has no data. Parse-preview of operator-pasted input is allowed; inventing tenant history is not.
 
-## KG JSON (placeholder until sample provided)
-We will define and lock the KG schema after a sample is provided. Until then:
-- KG must be able to represent: products, repos, jira projects, calendars, email groups, stakeholders, relationships, and named external systems.
-- The **deterministic** layer extracts inventory + ownership + evidence pointers + valid scopes + connector availability from KG relationships.
-- The **LLM** layer interprets what automation/agents that inventory implies; the **auditor** enforces groundedness. Do not replace LLM meaning with a hand-coded semantic discovery engine.
+## KG JSON (graph ingest — locked)
+
+Canonical company context is a **knowledge graph** in the shape illustrated by sample dumps `ex1.json` / `ex2.json` (pedagogical samples — not a closed schema whitelist):
+
+- Top-level: `nodes[]` + `edges[]` (relation_type, source/target ids).
+- Nodes may be flat (`name`, `type`, `source_type`, `summary`, `need_attention`, …) or richer (`identity`, `classification`, `semantic`, `attention`, `source`, `provenance`, …).
+- Attention hints (when present): `attention.recommended_agent`, `attention.recommended_action`, `attention.requires_human_approval`, `need_attention`.
+
+### Infer, do not obey blindly (locked)
+
+- **Infer** inventory and automation from the whole graph (entity types, source_type, summaries, edges, attention flags). Do **not** require a hand-authored flat `products[]` blob, and do **not** treat sample field sets as the only allowed shape.
+- **Do not blindly obey** graph labels: `recommended_agent` strings (e.g. `"Developer"`) are **hints**, not Authority role names. Map them through the live specialization catalog + auditor; invent nothing outside inventory + allowlists.
+- **Do not restrict** the agent set to recommendations only.
+
+### Recommended agents vs discovered automation (locked)
+
+1. **Must (floor):** When a node carries a non-null `recommended_agent` (and/or `need_attention` / `attention.required`), synthesis **must** produce a grounded agent proposal that covers that hint (mapped to an Authority specialization or an `unsupported` stub if no connector). Origin evidence must point at the node/attention path.
+2. **Not a ceiling:** After honoring recommendations, synthesis **must still** identify **other** plausible automations from inventory (repos → GitHub specializations, mail → Gmail, calendars, Jira/Linear/Slack/AWS/Notion as unsupported when named, etc.). Recommendations never silence catalog/LLM discovery.
+3. **Auditor:** Accept only proposals grounded in inventory + availability + evidence contracts; reject free invention; keep unsupported non-executable.
+
+Flat JSON (e.g. `{company, products[]}`) remains accepted as an alternate paste format for operators; graph KG is the primary product path.
 
 ## Change control (anti-drift rule)
 - Any change to scope, workflow semantics, evidence requirements, or UI pages must update this doc in the same PR.

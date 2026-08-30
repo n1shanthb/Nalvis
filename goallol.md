@@ -170,9 +170,9 @@ Still: no fake success; ValidationAgent re-fetches evidence for whatever writes 
 
 ## Status
 
-- **Goal owner:** execution in progress (control-plane spine session)
+- **Goal owner:** **closed** (spine DoD met). Active follow-on: [`goalship.md`](goalship.md) (ship-ready Authority v1).
 - **Authority version:** see `AUTHORITY.md` (Agent discovery vs agent execution; Agent runtime = OpenAI Agents SDK)
 - **Phase map:** aligns with `PHASES.md` Phase 1→3 spine, plus discovery-of-unsupported agents at ingest
 - **Verified live DoD smoke (2026-08-29):** run `7af48b77-f1cf-41b2-903b-e46d334cc2df` — GitHub issue #8 + Gmail `message_id`/`thread_id` + Calendar `event_id` all succeeded; validations **PASS** for all three; HIL approve on `gmail.send_email` (`appr-0f7f70ebd999`). Proof: `data/smoke_proof/latest.json` / `dod_smoke_20260829T162417Z.json`. Script: `scripts/dod_live_smoke.py`.
 - **Agents SDK:** Authority locks runtime to OpenAI Agents SDK. ExecuteJob now goes through `aip.runtime.agents_sdk.execute_job_via_agents_runtime` (tools wrap portable_core connectors + evidence contracts). With `OPENAI_API_KEY` unset, the same SDK tool path is invoked directly (no LLM planner) — not a bypass of connectors/contracts. Optional LLM Runner activates when key is set.
-- **Remaining polish (non-blocking for write DoD):** bounded concurrency still sequential; Redis fixed-window rate limit; Jira optional; worker must be single process (old hello-only workers steal activities)
+- **Deferred to goalship:** OpenRouter wiring, inbound Gmail→run, rich KG aliases, Jira-required, GitHub PR/CI depth, Calendar update, cross-system path, Integrations lastSuccessfulCall, console-only ship smoke
