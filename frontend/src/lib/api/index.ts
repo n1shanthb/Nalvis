@@ -8,6 +8,10 @@ const mode = (import.meta.env.VITE_API_MODE as AdapterMode | undefined) ?? 'demo
 
 let singleton: ApiAdapter | null = null
 
+export function getAdapterMode(): AdapterMode {
+  return mode
+}
+
 export function createAdapter(override?: AdapterMode): ApiAdapter {
   const m = override ?? mode
   if (m === 'http') return new HttpAdapter()

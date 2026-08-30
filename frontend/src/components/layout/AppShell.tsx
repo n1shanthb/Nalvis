@@ -13,6 +13,7 @@ import {
   Workflow,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getAdapterMode } from '@/lib/api'
 import { useDemoStore } from '@/lib/store'
 
 const globalNav = [
@@ -160,7 +161,7 @@ export function AppShell() {
         <div className="border-t border-[var(--color-border)] p-4 text-[11px] text-[var(--color-muted)]">
           <div className="flex items-center gap-1.5">
             <Activity className="h-3 w-3" aria-hidden />
-            Local store
+            {getAdapterMode() === 'http' ? 'Live API' : 'Local store'}
           </div>
           <div className="mt-1 truncate">{companyName || 'No company loaded'}</div>
         </div>

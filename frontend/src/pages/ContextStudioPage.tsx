@@ -58,9 +58,26 @@ export function ContextStudioPage() {
 
   async function onFile(file: File | undefined) {
     if (!file) return
-    const text = await file.text()
-    setRaw(text)
-    await runParse('upload', text)
+    if (file.size > 2_500_000) {
+      setError(`File is ${(file.size / 1_000_000).toFixed(1)}MB — max ~2.5MB for browser upload.`)
+      return
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      const text = await file.text()
+      // Don't stuff multi-MB JSON into the textarea (freezes UI); keep a short marker.
+      setRaw(
+        text.length > 80_000
+          ? `// uploaded ${file.name} (${(text.length / 1000).toFixed(0)}KB) — content sent to API, not shown here\n`
+          : text,
+      )
+      await ingestContext(text, 'upload')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload/parse failed')
+    } finally {
+      setBusy(false)
+    }
   }
 
   async function onClearAll() {
@@ -84,7 +101,7 @@ export function ContextStudioPage() {
     <div>
       <PageHeader
         title="Context Studio"
-        description="Upload company KG JSON or paste text. No sample payload is preloaded — empty means nothing ingested yet."
+        description="Upload company KG JSON (graph nodes/edges or flat products). Prefer Upload for large files (~1MB+) — paste can choke the browser. Empty means nothing ingested yet."
         actions={
           <Button variant="danger" disabled={busy || !hasData} onClick={() => void onClearAll()}>
             <Trash2 className="h-4 w-4" aria-hidden />

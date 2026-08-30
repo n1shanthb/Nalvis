@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,9 +15,17 @@ export function ApprovalsPage() {
   const { projectId = '' } = useParams()
   const { workspace, approvals } = useProjectData(projectId)
   const decideApproval = useDemoStore((s) => s.decideApproval)
+  const hydrate = useDemoStore((s) => s.hydrate)
   const agents = useDemoStore((s) => s.agents)
   const [filter, setFilter] = useState<ApprovalDecision | 'all'>('pending')
   const [editing, setEditing] = useState<Record<string, string>>({})
+  const [refreshing, setRefreshing] = useState(false)
+
+  // Webhook/HIL rows land in Postgres after the SPA's one-shot boot hydrate —
+  // re-pull whenever this inbox is opened so pending items are visible.
+  useEffect(() => {
+    void hydrate()
+  }, [hydrate, projectId])
 
   if (!workspace) {
     return <EmptyState title="Project not found" />
@@ -31,6 +39,22 @@ export function ApprovalsPage() {
       <PageHeader
         title={`${workspace.name} · Approvals`}
         description="HIL inbox for this project only — approve, deny, or edit governed write actions."
+        actions={
+          <Button
+            variant="secondary"
+            disabled={refreshing}
+            onClick={async () => {
+              setRefreshing(true)
+              try {
+                await hydrate()
+              } finally {
+                setRefreshing(false)
+              }
+            }}
+          >
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </Button>
+        }
       />
       <MetricStrip
         items={[

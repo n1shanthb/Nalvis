@@ -23,6 +23,16 @@ export default function App() {
     void hydrate()
   }, [hydrate])
 
+  // HIL / runs arrive via webhooks while the SPA stays open — refresh on focus
+  // so Approvals badges and lists match the control plane.
+  useEffect(() => {
+    function onFocus() {
+      void hydrate()
+    }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [hydrate])
+
   if (!hydrated) {
     return (
       <div className="flex min-h-full items-center justify-center">

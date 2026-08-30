@@ -88,27 +88,13 @@ export const useDemoStore = create<DemoStore>((set, get) => ({
   startRun: async (objectives, workspaceIds) => {
     const wsIds = workspaceIds?.length ? workspaceIds : get().workspaces.map((w) => w.id)
     if (wsIds.length === 0) throw new Error('No workspaces — ingest context first')
+    // Objective-only: Director + Routing Auditor select specialists (LLM when key set).
+    // Do not hardcode a demo plan of github+gmail+calendar.
     await getAdapter().startRun({
       title: objectives?.[0] || 'Company run',
-      objectives: objectives ?? ['Execute planned specialist jobs'],
+      objectives: objectives ?? ['Execute work implied by workspace inventory and live agents'],
       workspaceIds: wsIds,
-      plan: [
-        {
-          job_type: 'github.create_issue',
-          agent_role: 'GitHubIssueManagerAgent',
-          requested_action: { title: '[agentsuite] run from console', body: 'Started from Runs UI' },
-        },
-        {
-          job_type: 'gmail.send_email',
-          agent_role: 'GmailCommsAgent',
-          requested_action: { subject: '[agentsuite] run from console', body: 'Started from Runs UI' },
-        },
-        {
-          job_type: 'calendar.create_event',
-          agent_role: 'CalendarSchedulerAgent',
-          requested_action: { summary: '[agentsuite] run from console' },
-        },
-      ],
+      plan: [],
     })
     set({ ...(await snapshot()) })
   },
