@@ -7,11 +7,91 @@ Never hardcodes scenario trees (mail≠always Gmail+GitHub, etc.).
 from __future__ import annotations
 
 import json
-import os
 from dataclasses import dataclass, field
 from typing import Any
 
 from aip.evidence.contracts import JOB_TYPE_SYSTEM, has_evidence_contract
+from aip.llm.client import llm_configured
+
+_GITHUB_ISSUE_MANAGER_ALIASES: dict[str, str] = {
+    "github.comment_issue": "github.create_issue",
+}
+
+
+def _agent_has_job_type(agent: dict[str, Any], job_type: str) -> bool:
+    tools = agent.get("toolScope") or agent.get("tool_scope") or []
+    if job_type in tools:
+        return True
+    alias = _GITHUB_ISSUE_MANAGER_ALIASES.get(job_type)
+    return bool(alias and alias in tools)
+
+
+def _split_github_repo(full: str) -> tuple[str, str]:
+    if "/" not in full:
+        return "", full
+    owner, name = full.split("/", 1)
+    return owner.strip(), name.strip()
+
+
+def _github_jobs_from_signal(signal: dict[str, Any]) -> list[dict[str, Any]]:
+    """Event-family → catalog job from GitHub webhook facts (not scenario trees)."""
+    if str(signal.get("channel") or "") != "github":
+        return []
+    event = str(signal.get("event") or "").lower()
+    repo_full = str(signal.get("repo") or "").strip()
+    if not repo_full or "/" not in repo_full:
+        return []
+    owner, repo_name = _split_github_repo(repo_full)
+    title = str(signal.get("title") or "").strip()
+    html_url = str(signal.get("html_url") or "").strip()
+
+    if event == "pull_request":
+        pr_number = signal.get("pull_number")
+        if pr_number is None:
+            return []
+        action: dict[str, Any] = {
+            "owner": owner,
+            "repo": repo_name,
+            "repo_full": repo_full,
+            "pull_number": pr_number,
+        }
+        if title:
+            action["title"] = title
+        if html_url:
+            action["pr_url"] = html_url
+        return [
+            {
+                "job_type": "github.review_pr",
+                "requested_action": action,
+                "rationale": "GitHub pull_request signal facts",
+                "title": title or f"Review PR #{pr_number}",
+            }
+        ]
+
+    if event == "issues":
+        issue_number = signal.get("issue_number")
+        if issue_number is None:
+            return []
+        action = {
+            "owner": owner,
+            "repo": repo_name,
+            "repo_full": repo_full,
+            "issue_number": issue_number,
+        }
+        if title:
+            action["title"] = title
+        if html_url:
+            action["issue_url"] = html_url
+        return [
+            {
+                "job_type": "github.comment_issue",
+                "requested_action": action,
+                "rationale": "GitHub issues signal facts (comment on existing issue)",
+                "title": title or f"Comment on issue #{issue_number}",
+            }
+        ]
+
+    return []
 
 
 @dataclass
@@ -44,8 +124,10 @@ def route(
     Priority:
     1. Structured `plan` entries (human/API-provided objectives — still audited).
     2. Structured `signal.requested_jobs` if present.
-    3. LLM classification against catalog when OPENAI_API_KEY set.
-    4. Otherwise empty decision with note (no inventing example paths).
+    3. GitHub webhook signal facts → catalog job types (issues/PR families).
+    4. Objectives that are JSON job objects.
+    5. LLM classification against catalog when OPENAI/OpenRouter key set.
+    6. Otherwise empty decision with note (no inventing example paths).
     """
     executable = [
         a
@@ -57,15 +139,20 @@ def route(
     ]
 
     # 1) Explicit plan
+    signal = signal or {}
     if plan:
-        return _from_structured_plan(plan, executable, workspace)
+        return _from_structured_plan(plan, executable, workspace, signal=signal)
 
     # 2) Signal-carried structured jobs
-    signal = signal or {}
     if isinstance(signal.get("requested_jobs"), list) and signal["requested_jobs"]:
-        return _from_structured_plan(signal["requested_jobs"], executable, workspace)
+        return _from_structured_plan(signal["requested_jobs"], executable, workspace, signal=signal)
 
-    # 3) Objectives that are JSON job objects
+    # 3) GitHub webhook facts → catalog jobs (defense if normalize missed requested_jobs)
+    github_from_signal = _github_jobs_from_signal(signal)
+    if github_from_signal:
+        return _from_structured_plan(github_from_signal, executable, workspace, signal=signal)
+
+    # 4) Objectives that are JSON job objects
     structured_from_obj: list[dict[str, Any]] = []
     for obj in objectives:
         if isinstance(obj, dict):
@@ -78,25 +165,25 @@ def route(
             except json.JSONDecodeError:
                 pass
     if structured_from_obj:
-        return _from_structured_plan(structured_from_obj, executable, workspace)
+        return _from_structured_plan(structured_from_obj, executable, workspace, signal=signal)
 
-    # 4) LLM
-    api_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
-    if api_key and (objectives or signal):
+    # 5) LLM (OPENAI_API_KEY or OPENROUTER_API_KEY + LLM_API_BASE)
+    if llm_configured() and (objectives or signal):
         try:
-            return _llm_route(api_key, executable, workspace, objectives, signal)
+            return _llm_route(executable, workspace, objectives, signal)
         except Exception as exc:  # noqa: BLE001
             return RoutingDecision(notes=[f"LLM routing failed: {exc}"])
 
     return RoutingDecision(
         notes=[
             "Director: no structured plan/signal jobs and no LLM key — "
-            "refusing to invent example-specific routes. Provide plan[] or OPENAI_API_KEY."
+            "refusing to invent example-specific routes. Provide plan[] or "
+            "OPENAI_API_KEY / OPENROUTER_API_KEY."
         ]
     )
 
 
-def _match_agent(executable: list[dict[str, Any]], *, agent_id: str | None, role: str | None, system: str | None) -> dict[str, Any] | None:
+def _match_agent(executable: list[dict[str, Any]], *, agent_id: str | None, role: str | None, system: str | None, job_type: str | None = None) -> dict[str, Any] | None:
     if agent_id:
         for a in executable:
             if a.get("id") == agent_id:
@@ -105,6 +192,15 @@ def _match_agent(executable: list[dict[str, Any]], *, agent_id: str | None, role
         for a in executable:
             if a.get("role") == role:
                 return a
+    # Prefer agent whose tool allowlist includes this job_type (specialization match)
+    if job_type:
+        for a in executable:
+            if _agent_has_job_type(a, job_type):
+                if system:
+                    if a.get("systemKey") == system or a.get("system_key") == system:
+                        return a
+                else:
+                    return a
     if system:
         for a in executable:
             if a.get("systemKey") == system or a.get("system_key") == system:
@@ -116,6 +212,8 @@ def _from_structured_plan(
     plan: list[dict[str, Any]],
     executable: list[dict[str, Any]],
     workspace: dict[str, Any],
+    *,
+    signal: dict[str, Any] | None = None,
 ) -> RoutingDecision:
     jobs: list[ProposedJob] = []
     notes: list[str] = []
@@ -133,6 +231,7 @@ def _from_structured_plan(
             agent_id=item.get("agent_id") or item.get("agentId"),
             role=item.get("agent_role") or item.get("role"),
             system=system,
+            job_type=job_type,
         )
         if not agent:
             notes.append(f"plan[{i}] no executable agent for {job_type}")
@@ -140,8 +239,8 @@ def _from_structured_plan(
         action = item.get("requested_action") or item.get("requestedAction") or {}
         if not isinstance(action, dict):
             action = {"raw": action}
-        # Fill smoke defaults from workspace scope when fields absent (general, not hardcoding demo)
-        action = _enrich_action_from_scope(job_type, action, workspace)
+        # Fill defaults from webhook signal, then workspace scope (general, not hardcoding demo)
+        action = _enrich_action_from_scope(job_type, action, workspace, signal=signal)
         jobs.append(
             ProposedJob(
                 agent_id=str(agent["id"]),
@@ -155,10 +254,40 @@ def _from_structured_plan(
     return RoutingDecision(jobs=jobs, notes=notes)
 
 
-def _enrich_action_from_scope(job_type: str, action: dict[str, Any], workspace: dict[str, Any]) -> dict[str, Any]:
+def _enrich_action_from_scope(
+    job_type: str,
+    action: dict[str, Any],
+    workspace: dict[str, Any],
+    *,
+    signal: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     out = dict(action)
+    sig = signal or {}
+    if job_type.startswith("github."):
+        repo_val = str(out.get("repo") or "").strip()
+        if repo_val and "/" in repo_val and not out.get("owner"):
+            owner, repo_name = repo_val.split("/", 1)
+            out["owner"] = owner.strip()
+            out["repo"] = repo_name.strip()
+            out.setdefault("repo_full", repo_val)
+        # Webhook signal facts override workspace scope for inbound GitHub events
+        sig_repo = str(sig.get("repo") or "").strip()
+        if sig_repo and "/" in sig_repo:
+            o, r = _split_github_repo(sig_repo)
+            out["owner"] = o
+            out["repo"] = r
+            out["repo_full"] = sig_repo
+        if sig.get("issue_number") is not None:
+            out.setdefault("issue_number", sig["issue_number"])
+        if sig.get("pull_number") is not None:
+            out.setdefault("pull_number", sig["pull_number"])
+        if sig.get("title"):
+            out.setdefault("title", sig["title"])
+        if sig.get("html_url"):
+            out.setdefault("issue_url", sig["html_url"])
+            out.setdefault("pr_url", sig["html_url"])
     scope = workspace.get("scope") or {}
-    if job_type.startswith("github.") and "repo" not in out:
+    if job_type.startswith("github.") and "repo" not in out and "owner" not in out:
         repos = scope.get("repos") or workspace.get("repo_scope") or []
         if repos:
             full = str(repos[0])
@@ -182,13 +311,12 @@ def _enrich_action_from_scope(job_type: str, action: dict[str, Any], workspace: 
 
 
 def _llm_route(
-    api_key: str,
     executable: list[dict[str, Any]],
     workspace: dict[str, Any],
     objectives: list[str],
     signal: dict[str, Any],
 ) -> RoutingDecision:
-    from openai import OpenAI
+    from aip.llm.client import chat_completion_json
 
     catalog = [
         {
@@ -212,19 +340,11 @@ def _llm_route(
         f"Objectives: {objectives}\n"
         f"Signal: {json.dumps(signal)[:2000]}"
     )
-    client = OpenAI(api_key=api_key)
-    resp = client.chat.completions.create(
-        model=os.environ.get("OPENAI_MODEL", "gpt-4.1-mini"),
-        messages=[
-            {"role": "system", "content": "You output only valid JSON."},
-            {"role": "user", "content": prompt},
-        ],
+    data = chat_completion_json(
+        system="You output only valid JSON.",
+        user=prompt,
         temperature=0.2,
     )
-    text = (resp.choices[0].message.content or "").strip()
-    if text.startswith("```"):
-        text = text.strip("`")
-        if text.startswith("json"):
-            text = text[4:]
-    data = json.loads(text)
-    return _from_structured_plan(list(data.get("jobs") or []), executable, workspace)
+    if not isinstance(data, dict):
+        return RoutingDecision(notes=["LLM routing returned non-object JSON"])
+    return _from_structured_plan(list(data.get("jobs") or []), executable, workspace, signal=signal)

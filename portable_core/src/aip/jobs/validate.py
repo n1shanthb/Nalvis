@@ -16,11 +16,32 @@ def validate_job(
     job_type: str,
     evidence: dict[str, Any] | None,
     requested_action: dict[str, Any] | None = None,
+    execution_error: str | None = None,
 ) -> dict[str, Any]:
     """
     Returns validation payload:
       verdict, confidence, message, reasoning, checks[], evidence
     """
+    if execution_error:
+        return {
+            "verdict": "FAIL",
+            "confidence": 1.0,
+            "message": "Validation FAIL",
+            "reasoning": execution_error[:1000],
+            "checks": [
+                {
+                    "name": "execute",
+                    "passed": False,
+                    "detail": execution_error[:500],
+                }
+            ],
+            "evidence": {
+                "jobType": job_type,
+                "refs": {},
+                "executionError": execution_error[:500],
+            },
+        }
+
     refs = {}
     if evidence:
         refs = dict(evidence.get("refs") or evidence)
@@ -54,6 +75,15 @@ def validate_job(
     if job_type == "github.create_issue":
         verdict, extra = _validate_github_issue(refs)
         checks.extend(extra)
+    elif job_type == "github.comment_issue":
+        verdict, extra = _validate_github_comment_issue(refs)
+        checks.extend(extra)
+    elif job_type == "github.review_pr":
+        verdict, extra = _validate_github_pr_review(refs)
+        checks.extend(extra)
+    elif job_type == "github.create_or_update_workflow":
+        verdict, extra = _validate_github_workflow(refs)
+        checks.extend(extra)
     elif job_type == "gmail.send_email":
         verdict, extra = _validate_gmail(refs)
         checks.extend(extra)
@@ -61,7 +91,7 @@ def validate_job(
         verdict, extra = _validate_calendar(refs)
         checks.extend(extra)
     elif job_type.startswith("jira."):
-        verdict, extra = _validate_jira(refs)
+        verdict, extra = _validate_jira(refs, job_type=job_type)
         checks.extend(extra)
     else:
         verdict = "NO_EVIDENCE"
@@ -199,11 +229,180 @@ def _validate_calendar(refs: dict[str, Any]) -> tuple[AuthorityVerdict, list[dic
     ]
 
 
-def _validate_jira(refs: dict[str, Any]) -> tuple[AuthorityVerdict, list[dict[str, Any]]]:
+def _validate_github_pr_review(
+    refs: dict[str, Any],
+) -> tuple[AuthorityVerdict, list[dict[str, Any]]]:
+    from aip.integrations.github_app import resolve_github_token
+
+    pr_url = str(refs.get("pr_url") or "")
+    review_id = refs.get("review_id")
+    checks: list[dict[str, Any]] = []
+    if not pr_url:
+        return "NO_EVIDENCE", [{"name": "re_fetch", "passed": False, "detail": "no pr_url"}]
+    # Parse owner/repo/number from URL
+    import re
+
+    m = re.search(r"github\.com/([^/]+)/([^/]+)/pull/(\d+)", pr_url)
+    if not m:
+        return "FAIL", [{"name": "re_fetch", "passed": False, "detail": f"bad pr_url {pr_url}"}]
+    owner, repo, number = m.group(1), m.group(2), int(m.group(3))
+    try:
+        token = resolve_github_token()
+    except Exception as exc:  # noqa: BLE001
+        return "FAIL", [{"name": "re_fetch", "passed": False, "detail": f"auth error: {exc}"}]
+    api = f"https://api.github.com/repos/{owner}/{repo}/pulls/{number}"
+    try:
+        with httpx.Client(timeout=30.0) as client:
+            resp = client.get(
+                api,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/vnd.github+json",
+                },
+            )
+        if resp.status_code == 404:
+            return "FAIL", [{"name": "re_fetch", "passed": False, "detail": "PR not found"}]
+        if resp.status_code >= 400:
+            return "FAIL", [
+                {"name": "re_fetch", "passed": False, "detail": f"HTTP {resp.status_code}"}
+            ]
+        checks.append({"name": "pr_exists", "passed": True, "detail": f"PR #{number} exists"})
+        if review_id:
+            with httpx.Client(timeout=30.0) as client2:
+                rev = client2.get(
+                    f"https://api.github.com/repos/{owner}/{repo}/pulls/{number}/reviews/{int(review_id)}",
+                    headers={
+                        "Authorization": f"Bearer {token}",
+                        "Accept": "application/vnd.github+json",
+                    },
+                )
+            if rev.status_code >= 400:
+                checks.append(
+                    {
+                        "name": "review_exists",
+                        "passed": False,
+                        "detail": f"review {review_id} HTTP {rev.status_code}",
+                    }
+                )
+                return "FAIL", checks
+            checks.append(
+                {"name": "review_exists", "passed": True, "detail": f"review {review_id} exists"}
+            )
+        return "PASS", checks
+    except Exception as exc:  # noqa: BLE001
+        return "FAIL", [{"name": "re_fetch", "passed": False, "detail": str(exc)[:200]}]
+
+
+def _validate_github_comment_issue(
+    refs: dict[str, Any],
+) -> tuple[AuthorityVerdict, list[dict[str, Any]]]:
+    from aip.integrations.github_app import resolve_github_token
+
+    repo = str(refs.get("repo") or "")
+    issue_number = refs.get("issue_number")
+    comment_id = refs.get("comment_id")
+    if not repo or "/" not in repo or issue_number is None or comment_id is None:
+        return "NO_EVIDENCE", [
+            {"name": "re_fetch", "passed": False, "detail": "repo/issue_number/comment_id incomplete"}
+        ]
+    owner, name = repo.split("/", 1)
+    try:
+        token = resolve_github_token()
+    except Exception as exc:  # noqa: BLE001
+        return "FAIL", [{"name": "re_fetch", "passed": False, "detail": f"auth error: {exc}"}]
+    api = (
+        f"https://api.github.com/repos/{owner}/{name}/issues/comments/{int(comment_id)}"
+    )
+    try:
+        with httpx.Client(timeout=30.0) as client:
+            resp = client.get(
+                api,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/vnd.github+json",
+                },
+            )
+        if resp.status_code == 404:
+            return "FAIL", [{"name": "re_fetch", "passed": False, "detail": "comment not found"}]
+        if resp.status_code >= 400:
+            return "FAIL", [
+                {"name": "re_fetch", "passed": False, "detail": f"HTTP {resp.status_code}"}
+            ]
+        data = resp.json()
+        on_issue = str(data.get("issue_url") or "")
+        expected = f"/issues/{int(issue_number)}"
+        ok = expected in on_issue
+        return ("PASS" if ok else "FAIL"), [
+            {
+                "name": "re_fetch",
+                "passed": ok,
+                "detail": f"comment {comment_id} on issue #{issue_number}",
+            }
+        ]
+    except Exception as exc:  # noqa: BLE001
+        return "FAIL", [{"name": "re_fetch", "passed": False, "detail": str(exc)[:200]}]
+
+
+def _validate_github_workflow(
+    refs: dict[str, Any],
+) -> tuple[AuthorityVerdict, list[dict[str, Any]]]:
+    from aip.integrations.github_app import resolve_github_token
+
+    repo = str(refs.get("repo") or "")
+    sha = str(refs.get("commit_sha") or "")
+    file_path = str(refs.get("file_path") or "")
+    if not repo or "/" not in repo or not sha or not file_path:
+        return "NO_EVIDENCE", [
+            {"name": "re_fetch", "passed": False, "detail": "repo/commit_sha/file_path incomplete"}
+        ]
+    owner, name = repo.split("/", 1)
+    try:
+        token = resolve_github_token()
+    except Exception as exc:  # noqa: BLE001
+        return "FAIL", [{"name": "re_fetch", "passed": False, "detail": f"auth error: {exc}"}]
+    api = f"https://api.github.com/repos/{owner}/{name}/commits/{sha}"
+    try:
+        with httpx.Client(timeout=30.0) as client:
+            resp = client.get(
+                api,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/vnd.github+json",
+                },
+            )
+        if resp.status_code == 404:
+            return "FAIL", [{"name": "re_fetch", "passed": False, "detail": "commit not found"}]
+        if resp.status_code >= 400:
+            return "FAIL", [
+                {"name": "re_fetch", "passed": False, "detail": f"HTTP {resp.status_code}"}
+            ]
+        return "PASS", [
+            {
+                "name": "re_fetch",
+                "passed": True,
+                "detail": f"commit {sha[:8]} exists for {file_path}",
+            }
+        ]
+    except Exception as exc:  # noqa: BLE001
+        return "FAIL", [{"name": "re_fetch", "passed": False, "detail": str(exc)[:200]}]
+
+
+def _validate_jira(
+    refs: dict[str, Any], *, job_type: str = "jira.create_ticket"
+) -> tuple[AuthorityVerdict, list[dict[str, Any]]]:
     key = str(refs.get("issue_key") or "").strip()
     if not key:
         return "NO_EVIDENCE", [{"name": "re_fetch", "passed": False, "detail": "no issue_key"}]
-    # Soft check: evidence fields present; live Jira re-fetch optional for this goal
+    if job_type == "jira.transition_ticket":
+        tid = str(refs.get("transition_id") or "").strip()
+        ok = bool(key) and bool(tid)
+        return ("PASS" if ok else "NO_EVIDENCE"), [
+            {
+                "name": "evidence_fields",
+                "passed": ok,
+                "detail": "transition_id + issue_key checked (live Jira re-fetch soft)",
+            }
+        ]
     browse = str(refs.get("browse_url") or "")
     ok = bool(key) and bool(browse)
     return ("PASS" if ok else "NO_EVIDENCE"), [

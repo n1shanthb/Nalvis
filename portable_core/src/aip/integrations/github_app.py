@@ -266,3 +266,79 @@ def list_issue_comments(
     if isinstance(data, list):
         return [item for item in data if isinstance(item, dict)]
     return []
+
+
+def create_pull_request_review(
+    *,
+    owner: str,
+    repo: str,
+    pull_number: int,
+    body: str,
+    event: str = "COMMENT",
+) -> dict[str, Any]:
+    """Submit a PR review (COMMENT / APPROVE / REQUEST_CHANGES)."""
+    token = resolve_github_token()
+    if not token:
+        raise RuntimeError("GitHub auth missing for PR review")
+    text = (body or "").strip() or "AgentSuite review"
+    ev = (event or "COMMENT").strip().upper()
+    if ev not in ("COMMENT", "APPROVE", "REQUEST_CHANGES", "PENDING"):
+        ev = "COMMENT"
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{int(pull_number)}/reviews"
+    with httpx.Client(timeout=30.0) as client:
+        resp = client.post(
+            url,
+            headers=_github_headers(token),
+            json={"body": text[:65000], "event": ev},
+        )
+        if resp.status_code >= 400:
+            raise RuntimeError(
+                f"GitHub PR review failed ({resp.status_code}): {resp.text[:400]}"
+            )
+        data = resp.json()
+    return data if isinstance(data, dict) else {"ok": True}
+
+
+def create_or_update_repo_file(
+    *,
+    owner: str,
+    repo: str,
+    path: str,
+    content: str,
+    message: str,
+    branch: str | None = None,
+) -> dict[str, Any]:
+    """Create or update a file via Contents API (used for CI workflow writes)."""
+    import base64
+
+    token = resolve_github_token()
+    if not token:
+        raise RuntimeError("GitHub auth missing for file write")
+    file_path = (path or "").lstrip("/")
+    if not file_path:
+        raise ValueError("path required")
+    api = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
+    headers = _github_headers(token)
+    sha = None
+    with httpx.Client(timeout=30.0) as client:
+        get_params = {"ref": branch} if branch else None
+        existing = client.get(api, headers=headers, params=get_params)
+        if existing.status_code < 400:
+            body = existing.json()
+            if isinstance(body, dict) and body.get("sha"):
+                sha = str(body["sha"])
+        payload: dict[str, Any] = {
+            "message": (message or f"Update {file_path}")[:240],
+            "content": base64.b64encode((content or "").encode("utf-8")).decode("ascii"),
+        }
+        if sha:
+            payload["sha"] = sha
+        if branch:
+            payload["branch"] = branch
+        resp = client.put(api, headers=headers, json=payload)
+        if resp.status_code >= 400:
+            raise RuntimeError(
+                f"GitHub contents write failed ({resp.status_code}): {resp.text[:400]}"
+            )
+        data = resp.json()
+    return data if isinstance(data, dict) else {"ok": True}

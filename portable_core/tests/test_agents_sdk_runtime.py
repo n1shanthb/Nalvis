@@ -21,6 +21,7 @@ def test_execute_via_runtime_uses_connector(monkeypatch) -> None:
 
     monkeypatch.setattr("aip.runtime.agents_sdk.execute_job_type", fake_execute)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     result = execute_job_via_agents_runtime(
         "github.create_issue",
         {"title": "t"},

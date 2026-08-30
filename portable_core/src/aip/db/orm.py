@@ -215,3 +215,18 @@ class AuditEventRow(Base):
     label: Mapped[str] = mapped_column(String(512), default="")
     meta: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class IntegrationCallRow(Base):
+    """Persisted last success/error per integration (observability)."""
+
+    __tablename__ = "integration_calls"
+
+    name: Mapped[str] = mapped_column(String(64), primary_key=True)  # github|jira|gmail|calendar
+    last_successful_call_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_error_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    success_count: Mapped[int] = mapped_column(Integer, default=0)
+    error_count: Mapped[int] = mapped_column(Integer, default=0)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)

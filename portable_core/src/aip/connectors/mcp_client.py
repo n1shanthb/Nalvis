@@ -3,7 +3,21 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+import concurrent.futures
+from typing import Any, Coroutine, TypeVar
+
+T = TypeVar("T")
+
+
+def _run_sync(coro: Coroutine[Any, Any, T]) -> T:
+    """Run async MCP helpers from sync code — safe inside Temporal's event loop."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(lambda: asyncio.run(coro)).result(timeout=120)
 
 
 async def _list_tools(
@@ -78,7 +92,7 @@ def list_mcp_tools(
     name: str,
 ) -> dict[str, Any]:
     try:
-        names = asyncio.run(_list_tools(url=url, headers=headers, name=name))
+        names = _run_sync(_list_tools(url=url, headers=headers, name=name))
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": str(exc)[:400], "available": []}
     return {"ok": True, "available": names}
@@ -92,15 +106,18 @@ def call_mcp_tool(
     tool_name: str,
     arguments: dict[str, Any],
 ) -> dict[str, Any]:
-    return asyncio.run(
-        _list_and_call(
-            url=url,
-            headers=headers,
-            name=name,
-            tool_name=tool_name,
-            arguments=arguments,
+    try:
+        return _run_sync(
+            _list_and_call(
+                url=url,
+                headers=headers,
+                name=name,
+                tool_name=tool_name,
+                arguments=arguments,
+            )
         )
-    )
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)[:500]}
 
 
 def github_mcp_headers() -> dict[str, str]:

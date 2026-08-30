@@ -49,6 +49,13 @@ class Settings(BaseSettings):
     # Demo / offline
     offline_demo_mode: bool = True
 
+    # LLM (OpenAI-compatible: OpenAI or OpenRouter)
+    openai_api_key: str = ""
+    openrouter_api_key: str = ""
+    llm_api_base: str = ""
+    openai_model: str = ""
+    llm_model: str = ""
+
     # API / tunnel
     api_host: str = "127.0.0.1"
     api_port: int = 8000
@@ -60,6 +67,8 @@ class Settings(BaseSettings):
     # Smoke targets (optional; GitHub smoke must use analytics-resume only)
     smoke_github_owner: str = "n1shanthb"
     smoke_github_repo: str = "analytics-resume"
+    # Secondary repo where GitHub App is installed for PR/CI writes (owner/repo)
+    smoke_github_app_repo: str = ""
     smoke_jira_project_key: str = ""
 
     # Data plane / orchestration (Authority: Postgres + Redis + Temporal)

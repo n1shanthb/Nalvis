@@ -22,6 +22,7 @@ class PolicyEval:
 # Default HIL for sensitive writes when no DB policy exists
 _DEFAULT_HIL: dict[str, bool] = {
     "github.create_issue": False,
+    "github.comment_issue": True,
     "github.review_pr": True,
     "github.create_or_update_workflow": True,
     "jira.create_ticket": False,
@@ -75,6 +76,7 @@ def evaluate_job_policy(
 
 DEFAULT_POLICY_ACTIONS: list[dict[str, Any]] = [
     {"action": "github.create_issue", "label": "GitHub create issue", "allowed": True, "hil_required": False, "auto_merge": False},
+    {"action": "github.comment_issue", "label": "GitHub comment on issue", "allowed": True, "hil_required": True, "auto_merge": False},
     {"action": "github.review_pr", "label": "GitHub review PR", "allowed": True, "hil_required": True, "auto_merge": False},
     {"action": "github.create_or_update_workflow", "label": "GitHub CI workflow", "allowed": True, "hil_required": True, "auto_merge": False},
     {"action": "jira.create_ticket", "label": "Jira create ticket", "allowed": True, "hil_required": False, "auto_merge": False},

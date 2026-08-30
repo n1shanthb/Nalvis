@@ -47,27 +47,42 @@ def execute_job_type(job_type: str, requested_action: dict[str, Any]) -> dict[st
     }
 
 
+def _github_owner_repo(action: dict[str, Any], *, prefer_app_repo: bool = False) -> tuple[str, str]:
+    """Resolve owner/repo: action fields → optional App-installed write repo → smoke defaults."""
+    if action.get("repo_full"):
+        full = str(action["repo_full"]).strip()
+        if "/" in full:
+            o, r = full.split("/", 1)
+            return o.strip(), r.strip()
+    owner = str(action.get("owner") or "").strip()
+    repo = str(action.get("repo") or "").strip()
+    # LLM/webhook payloads sometimes put "owner/repo" in repo with no owner field.
+    if repo and "/" in repo and not owner:
+        o, r = repo.split("/", 1)
+        return o.strip(), r.strip()
+    if owner and repo:
+        return owner, repo
+    if prefer_app_repo:
+        app_repo = (settings.smoke_github_app_repo or "").strip()
+        if "/" in app_repo:
+            o, r = app_repo.split("/", 1)
+            return o.strip(), r.strip()
+    return (
+        str(action.get("owner") or settings.smoke_github_owner or "").strip(),
+        str(action.get("repo") or settings.smoke_github_repo or "").strip(),
+    )
+
+
 def _github_create_issue(action: dict[str, Any]) -> dict[str, Any]:
     from aip.connectors.github_smoke import smoke_github_mcp_issue
     from aip.integrations.github_app import create_issue, github_app_configured
 
-    owner = str(action.get("owner") or settings.smoke_github_owner or "").strip()
-    repo = str(action.get("repo") or settings.smoke_github_repo or "").strip()
+    owner, repo = _github_owner_repo(action)
+    guard = _smoke_repo_guard(action, owner, repo)
+    if guard:
+        return guard
     title = str(action.get("title") or f"[agentsuite] {datetime.now(timezone.utc).isoformat()}")
     body = str(action.get("body") or "Created by AgentSuite ExecuteJob.")
-
-    # Enforce smoke repo lock from goallol when action targets github writes without explicit override flag
-    smoke_owner = (settings.smoke_github_owner or "").strip()
-    smoke_repo = (settings.smoke_github_repo or "").strip()
-    if smoke_owner and smoke_repo and (owner != smoke_owner or repo != smoke_repo):
-        # Still allow if workspace scoped differently — caller/auditor already checked scope.
-        # goallol: smoke target is analytics-resume only for DoD smoke; non-smoke repos require explicit allow.
-        if not action.get("allow_non_smoke_repo"):
-            return {
-                "ok": False,
-                "error": f"GitHub writes limited to smoke repo {smoke_owner}/{smoke_repo} "
-                f"(got {owner}/{repo}). Pass allow_non_smoke_repo=true for in-scope non-smoke writes.",
-            }
 
     if github_app_configured():
         try:
@@ -93,6 +108,47 @@ def _github_create_issue(action: dict[str, Any]) -> dict[str, Any]:
     if result.get("ok"):
         return result
     return {"ok": False, "error": result.get("error") or app_err, "raw": result}
+
+
+def _github_comment_issue(action: dict[str, Any]) -> dict[str, Any]:
+    from aip.integrations.github_app import post_issue_comment
+
+    owner, repo = _github_owner_repo(action, prefer_app_repo=True)
+    guard = _smoke_repo_guard(action, owner, repo)
+    if guard:
+        return guard
+    issue_number = action.get("issue_number") or action.get("number")
+    if issue_number is None:
+        return {"ok": False, "error": "github.comment_issue requires issue_number"}
+    title = str(action.get("title") or "").strip()
+    body = str(
+        action.get("body")
+        or action.get("comment")
+        or (f"[agentsuite] Received issue #{issue_number}" + (f": {title}" if title else ""))
+    )
+    try:
+        data = post_issue_comment(
+            owner=owner,
+            repo=repo,
+            number=int(issue_number),
+            body=body,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)[:500]}
+    issue_url = str(action.get("issue_url") or action.get("html_url") or "").strip()
+    if not issue_url:
+        issue_url = f"https://github.com/{owner}/{repo}/issues/{int(issue_number)}"
+    return {
+        "ok": True,
+        "via": "app:issue_comment",
+        "evidence": {
+            "issue_url": issue_url,
+            "issue_number": int(issue_number),
+            "repo": f"{owner}/{repo}",
+            "comment_id": data.get("id"),
+        },
+        "raw": data,
+    }
 
 
 def _gmail_send(action: dict[str, Any]) -> dict[str, Any]:
@@ -183,23 +239,177 @@ def _calendar_update(action: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _smoke_repo_guard(action: dict[str, Any], owner: str, repo: str) -> dict[str, Any] | None:
+    smoke_owner = (settings.smoke_github_owner or "").strip()
+    smoke_repo = (settings.smoke_github_repo or "").strip()
+    allowed = set()
+    if smoke_owner and smoke_repo:
+        allowed.add(f"{smoke_owner}/{smoke_repo}".lower())
+    app_repo = (settings.smoke_github_app_repo or "").strip()
+    if app_repo and "/" in app_repo:
+        allowed.add(app_repo.lower())
+    # Explicit allowlist entries from action
+    for extra in action.get("allowed_repos") or []:
+        if isinstance(extra, str) and "/" in extra:
+            allowed.add(extra.strip().lower())
+    target = f"{owner}/{repo}".lower()
+    if allowed and target not in allowed and not action.get("allow_non_smoke_repo"):
+        return {
+            "ok": False,
+            "error": f"GitHub writes limited to smoke/app repos {sorted(allowed)} "
+            f"(got {owner}/{repo}). Pass allow_non_smoke_repo=true or set SMOKE_GITHUB_APP_REPO.",
+        }
+    return None
+
+
+def _github_review_pr(action: dict[str, Any]) -> dict[str, Any]:
+    from aip.integrations.github_app import create_pull_request_review
+
+    owner, repo = _github_owner_repo(action, prefer_app_repo=True)
+    guard = _smoke_repo_guard(action, owner, repo)
+    if guard:
+        return guard
+    pull_number = action.get("pull_number") or action.get("pr_number") or action.get("number")
+    if pull_number is None:
+        return {"ok": False, "error": "github.review_pr requires pull_number"}
+    body = str(action.get("body") or action.get("comment") or "[agentsuite] PR review")
+    event = str(action.get("event") or "COMMENT")
+    try:
+        data = create_pull_request_review(
+            owner=owner,
+            repo=repo,
+            pull_number=int(pull_number),
+            body=body,
+            event=event,
+        )
+    except Exception as exc:  # noqa: BLE001
+        # Fall back to primary smoke repo if App-write repo failed and action didn't pin owner/repo
+        smoke_o = (settings.smoke_github_owner or "").strip()
+        smoke_r = (settings.smoke_github_repo or "").strip()
+        if (
+            not (action.get("owner") and action.get("repo"))
+            and smoke_o
+            and smoke_r
+            and (owner, repo) != (smoke_o, smoke_r)
+        ):
+            try:
+                data = create_pull_request_review(
+                    owner=smoke_o,
+                    repo=smoke_r,
+                    pull_number=int(pull_number),
+                    body=body,
+                    event=event,
+                )
+                owner, repo = smoke_o, smoke_r
+            except Exception:  # noqa: BLE001
+                return {"ok": False, "error": str(exc)[:500]}
+        else:
+            return {"ok": False, "error": str(exc)[:500]}
+    review_id = data.get("id")
+    pr_url = data.get("html_url") or f"https://github.com/{owner}/{repo}/pull/{pull_number}"
+    if "/pull/" not in str(pr_url):
+        pr_url = f"https://github.com/{owner}/{repo}/pull/{pull_number}"
+    return {
+        "ok": True,
+        "via": "app:pull_request_review",
+        "evidence": {
+            "pr_url": pr_url,
+            "review_id": review_id,
+            "repo": f"{owner}/{repo}",
+            "pull_number": int(pull_number),
+        },
+        "raw": data,
+    }
+
+
+def _github_create_or_update_workflow(action: dict[str, Any]) -> dict[str, Any]:
+    from aip.integrations.github_app import create_or_update_repo_file
+
+    owner, repo = _github_owner_repo(action, prefer_app_repo=True)
+    guard = _smoke_repo_guard(action, owner, repo)
+    if guard:
+        return guard
+    file_path = str(
+        action.get("file_path")
+        or action.get("path")
+        or ".github/workflows/agentsuite-smoke.yml"
+    ).strip()
+    content = str(
+        action.get("content")
+        or action.get("workflow_yaml")
+        or (
+            "name: agentsuite-smoke\n"
+            "on:\n  workflow_dispatch:\n"
+            "jobs:\n  ping:\n    runs-on: ubuntu-latest\n"
+            "    steps:\n      - run: echo agentsuite\n"
+        )
+    )
+    message = str(action.get("message") or f"[agentsuite] update {file_path}")
+    try:
+        data = create_or_update_repo_file(
+            owner=owner,
+            repo=repo,
+            path=file_path,
+            content=content,
+            message=message,
+            branch=action.get("branch"),
+        )
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)[:500]}
+    commit = data.get("commit") if isinstance(data.get("commit"), dict) else {}
+    content_meta = data.get("content") if isinstance(data.get("content"), dict) else {}
+    sha = commit.get("sha") or content_meta.get("sha")
+    html = content_meta.get("html_url") or commit.get("html_url") or ""
+    workflow_url = (
+        str(action.get("workflow_url") or "")
+        or f"https://github.com/{owner}/{repo}/blob/HEAD/{file_path}"
+    )
+    return {
+        "ok": True,
+        "via": "app:contents_workflow",
+        "evidence": {
+            "repo": f"{owner}/{repo}",
+            "commit_sha": sha,
+            "file_path": file_path,
+            "workflow_url": workflow_url or html,
+        },
+        "raw": data,
+    }
+
+
 def _jira_create(action: dict[str, Any]) -> dict[str, Any]:
     from aip.connectors import smoke as connector_smoke
 
     summary = str(action.get("summary") or action.get("title") or "")
-    result = connector_smoke.smoke_jira_mcp_create(summary=summary or None)
+    project_key = str(action.get("project_key") or action.get("projectKey") or "").strip()
+    result = connector_smoke.smoke_jira_mcp_create(
+        summary=summary or None,
+        project_key=project_key or None,
+    )
     return result
 
 
 def _jira_transition(action: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "ok": False,
-        "error": "jira.transition_ticket not wired in this spine slice (optional for goallol DoD)",
-    }
+    from aip.connectors import smoke as connector_smoke
+
+    issue_key = str(action.get("issue_key") or action.get("issueKey") or "").strip()
+    transition_id = str(action.get("transition_id") or action.get("transitionId") or "").strip()
+    transition_name = str(action.get("transition_name") or action.get("transitionName") or "").strip()
+    if not issue_key:
+        return {"ok": False, "error": "jira.transition_ticket requires issue_key"}
+    result = connector_smoke.smoke_jira_mcp_transition(
+        issue_key=issue_key,
+        transition_id=transition_id or None,
+        transition_name=transition_name or None,
+    )
+    return result
 
 
 _REGISTRY: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
     "github.create_issue": _github_create_issue,
+    "github.comment_issue": _github_comment_issue,
+    "github.review_pr": _github_review_pr,
+    "github.create_or_update_workflow": _github_create_or_update_workflow,
     "gmail.send_email": _gmail_send,
     "calendar.create_event": _calendar_create,
     "calendar.update_event": _calendar_update,

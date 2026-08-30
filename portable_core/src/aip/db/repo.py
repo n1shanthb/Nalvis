@@ -16,6 +16,7 @@ from aip.db.orm import (
     AuditEventRow,
     CompanyRow,
     ContextDocumentRow,
+    IntegrationCallRow,
     JobRow,
     PolicyRow,
     RunRow,
@@ -402,8 +403,57 @@ def get_company_name(session: Session) -> str:
 
 OPS_TABLES_TRUNCATE = (
     "audit_events, validations, approvals, jobs, runs, "
-    "agent_guardrails, agents, policies, context_documents, workspaces"
+    "agent_guardrails, agents, policies, context_documents, workspaces, integration_calls"
 )
+
+
+def record_integration_call(
+    session: Session,
+    *,
+    system: str,
+    ok: bool,
+    error: str | None = None,
+    latency_ms: int | None = None,
+) -> IntegrationCallRow:
+    """Upsert lastSuccessfulCallAt / lastError for Integrations page honesty."""
+    name = (system or "").strip().lower()
+    if not name:
+        raise ValueError("system required")
+    row = session.get(IntegrationCallRow, name)
+    if row is None:
+        row = IntegrationCallRow(name=name)
+        session.add(row)
+    now = _utcnow()
+    row.updated_at = now
+    if latency_ms is not None:
+        row.last_latency_ms = int(latency_ms)
+    if ok:
+        row.last_successful_call_at = now
+        row.last_error = None
+        row.success_count = int(row.success_count or 0) + 1
+    else:
+        row.last_error = (error or "error")[:1000]
+        row.last_error_at = now
+        row.error_count = int(row.error_count or 0) + 1
+    session.flush()
+    return row
+
+
+def get_integration_call_stats(session: Session) -> dict[str, dict[str, Any]]:
+    rows = session.scalars(select(IntegrationCallRow)).all()
+    out: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        out[row.name] = {
+            "lastSuccessfulCallAt": row.last_successful_call_at.isoformat()
+            if row.last_successful_call_at
+            else None,
+            "lastError": row.last_error,
+            "lastErrorAt": row.last_error_at.isoformat() if row.last_error_at else None,
+            "latencyMsP50": row.last_latency_ms,
+            "successCount": row.success_count,
+            "errorCount": row.error_count,
+        }
+    return out
 
 
 def clear_all_ops_data(session: Session) -> dict[str, int]:

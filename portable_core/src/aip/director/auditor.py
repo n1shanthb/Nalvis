@@ -8,11 +8,41 @@ from typing import Any
 from aip.director.router import ProposedJob, RoutingDecision
 from aip.evidence.contracts import JOB_TYPE_SYSTEM, has_evidence_contract
 
+# Agents synthesized before comment_issue was added may only list create_issue.
+_GITHUB_ISSUE_MANAGER_ALIASES: dict[str, str] = {
+    "github.comment_issue": "github.create_issue",
+}
+
+
+def _agent_allows_job_type(agent: dict[str, Any], job_type: str) -> bool:
+    tools = set(agent.get("toolScope") or agent.get("tool_scope") or [])
+    if not tools:
+        return True
+    if job_type in tools:
+        return True
+    alias = _GITHUB_ISSUE_MANAGER_ALIASES.get(job_type)
+    return bool(alias and alias in tools)
+
 
 @dataclass
 class RoutingAuditResult:
     accepted: list[ProposedJob]
     rejected: list[tuple[ProposedJob, str]]
+
+
+def extra_github_repos_outside_kg() -> set[str]:
+    """Demo/smoke App write targets allowed outside workspace KG repo scope (lowercased)."""
+    from aip.config import settings
+
+    out: set[str] = set()
+    smoke_o = (settings.smoke_github_owner or "").strip()
+    smoke_r = (settings.smoke_github_repo or "").strip()
+    if smoke_o and smoke_r:
+        out.add(f"{smoke_o}/{smoke_r}".lower())
+    app_repo = (settings.smoke_github_app_repo or "").strip()
+    if app_repo:
+        out.add(app_repo.lower())
+    return out
 
 
 def audit_routing(
@@ -41,7 +71,7 @@ def audit_routing(
             rejected.append((job, f"no evidence contract for {job.job_type}"))
             continue
         tools = set(agent.get("toolScope") or agent.get("tool_scope") or [])
-        if tools and job.job_type not in tools:
+        if tools and not _agent_allows_job_type(agent, job.job_type):
             rejected.append((job, f"job_type {job.job_type} not in agent tool allowlist"))
             continue
         system = JOB_TYPE_SYSTEM.get(job.job_type)
@@ -52,9 +82,11 @@ def audit_routing(
                 else ""
             )
             repos = set(scope.get("repos") or [])
+            # Align with execute smoke/app write allowlist (webhook repos may not be in KG workspace scope).
             if repos and repo and repo not in repos:
-                rejected.append((job, f"repo {repo} outside workspace scope"))
-                continue
+                if str(repo).lower() not in extra_github_repos_outside_kg():
+                    rejected.append((job, f"repo {repo} outside workspace scope"))
+                    continue
         if system == "jira":
             key = str(
                 job.requested_action.get("project_key") or job.requested_action.get("projectKey") or ""

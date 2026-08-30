@@ -75,7 +75,7 @@ class ProductRunWorkflow:
         )
 
         job_results: list[dict[str, Any]] = []
-        succeeded_job_ids: list[str] = []
+        executed_job_ids: list[str] = []
 
         for job in routed.get("jobs") or []:
             job_id = job["id"]
@@ -136,10 +136,9 @@ class ProductRunWorkflow:
                 retry_policy=_WRITE_RETRY,
             )
             job_results.append(exec_res)
-            if exec_res.get("ok"):
-                succeeded_job_ids.append(job_id)
+            executed_job_ids.append(job_id)
 
-        for jid in succeeded_job_ids:
+        for jid in executed_job_ids:
             await workflow.execute_activity(
                 "validate_job_activity",
                 {"job_id": jid},
@@ -147,12 +146,15 @@ class ProductRunWorkflow:
                 retry_policy=_ACT_RETRY,
             )
 
+        succeeded_job_ids = [jr.get("job_id") for jr in job_results if jr.get("ok")]
+
         return {
             "ok": True,
             "workspace_id": payload["workspace_id"],
             "routed": routed,
             "job_results": job_results,
             "succeeded_job_ids": succeeded_job_ids,
+            "executed_job_ids": executed_job_ids,
         }
 
 
@@ -221,3 +223,80 @@ class CompanyRunWorkflow:
             start_to_close_timeout=timedelta(seconds=30),
         )
         return {"ok": True, "status": status, "children": child_results}
+
+
+@workflow.defn(name="GmailInboundWorkflow")
+class GmailInboundWorkflow:
+    """Thin durable path: fetch Gmail facts → start CompanyRun with Director signal."""
+
+    @workflow.run
+    async def run(self, payload: dict[str, Any]) -> dict[str, Any]:
+        await workflow.execute_activity(
+            "ensure_schema",
+            start_to_close_timeout=timedelta(seconds=30),
+        )
+        fetched = await workflow.execute_activity(
+            "fetch_gmail_inbound_signal_activity",
+            {
+                "history_id": payload.get("history_id") or "",
+                "message_id": payload.get("message_id") or "",
+                "delivery_id": payload.get("delivery_id") or "",
+            },
+            start_to_close_timeout=timedelta(minutes=2),
+            retry_policy=_ACT_RETRY,
+        )
+        if not fetched.get("ok"):
+            return {"ok": False, "error": fetched.get("error"), "fetched": fetched}
+        if fetched.get("skipped"):
+            return {"ok": True, "skipped": True, "fetched": fetched}
+
+        started = await workflow.execute_activity(
+            "start_company_run_from_signal_activity",
+            {
+                "signal": fetched.get("signal") or {},
+                "workspace_ids": payload.get("workspace_ids") or [],
+                "objectives": payload.get("objectives") or [],
+                "title": payload.get("title"),
+            },
+            start_to_close_timeout=timedelta(minutes=2),
+            retry_policy=_ACT_RETRY,
+        )
+        return {"ok": bool(started.get("ok")), "fetched": fetched, "started": started}
+
+
+@workflow.defn(name="GithubInboundWorkflow")
+class GithubInboundWorkflow:
+    """Thin durable path: normalize GitHub webhook → CompanyRun with Director signal."""
+
+    @workflow.run
+    async def run(self, payload: dict[str, Any]) -> dict[str, Any]:
+        await workflow.execute_activity(
+            "ensure_schema",
+            start_to_close_timeout=timedelta(seconds=30),
+        )
+        normalized = await workflow.execute_activity(
+            "normalize_github_webhook_signal_activity",
+            {
+                "event": payload.get("event") or "",
+                "action": payload.get("action") or "",
+                "delivery_id": payload.get("delivery_id") or "",
+                "payload": payload.get("payload") or {},
+            },
+            start_to_close_timeout=timedelta(seconds=60),
+            retry_policy=_ACT_RETRY,
+        )
+        if not normalized.get("ok"):
+            return {"ok": False, "error": "normalize_failed", "normalized": normalized}
+
+        started = await workflow.execute_activity(
+            "start_company_run_from_signal_activity",
+            {
+                "signal": normalized.get("signal") or {},
+                "workspace_ids": payload.get("workspace_ids") or [],
+                "objectives": normalized.get("objectives") or [],
+                "title": (normalized.get("signal") or {}).get("subject"),
+            },
+            start_to_close_timeout=timedelta(minutes=2),
+            retry_policy=_ACT_RETRY,
+        )
+        return {"ok": bool(started.get("ok")), "normalized": normalized, "started": started}

@@ -7,6 +7,7 @@ from typing import Any
 # Authority.md — Evidence contracts (authoritative minimum)
 EVIDENCE_CONTRACTS: dict[str, frozenset[str]] = {
     "github.create_issue": frozenset({"issue_url", "repo", "issue_number"}),
+    "github.comment_issue": frozenset({"issue_url", "repo", "issue_number", "comment_id"}),
     "github.review_pr": frozenset({"pr_url"}),  # + review_comment_urls[] or review_id
     "github.create_or_update_workflow": frozenset({"repo", "commit_sha", "file_path", "workflow_url"}),
     "jira.create_ticket": frozenset({"issue_key", "browse_url"}),
@@ -19,6 +20,7 @@ EVIDENCE_CONTRACTS: dict[str, frozenset[str]] = {
 # Which connector family a job_type belongs to
 JOB_TYPE_SYSTEM: dict[str, str] = {
     "github.create_issue": "github",
+    "github.comment_issue": "github",
     "github.review_pr": "github",
     "github.create_or_update_workflow": "github",
     "jira.create_ticket": "jira",

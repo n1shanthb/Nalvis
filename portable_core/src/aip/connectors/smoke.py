@@ -73,6 +73,18 @@ def integrations_console_payload() -> dict[str, Any]:
     raw = health_snapshot()
     checked_at = raw.get("checked_at")
 
+    call_stats: dict[str, dict[str, Any]] = {}
+    try:
+        from aip.db.repo import get_integration_call_stats
+        from aip.db.schema import init_db
+        from aip.db.session import session_scope
+
+        init_db()
+        with session_scope() as session:
+            call_stats = get_integration_call_stats(session)
+    except Exception:  # noqa: BLE001
+        call_stats = {}
+
     gh = raw["github"]
     gh_configured = bool(gh.get("app_configured") or gh.get("token_resolvable"))
     gh_err = gh.get("error")
@@ -120,17 +132,31 @@ def integrations_console_payload() -> dict[str, Any]:
         error=cal_err,
     )
 
+    def _merge(name: str, last_error_fallback: str | None) -> tuple[str | None, str | None, int | None]:
+        stats = call_stats.get(name) or {}
+        last_ok = stats.get("lastSuccessfulCallAt")
+        last_err = stats.get("lastError") if stats.get("lastError") else last_error_fallback
+        latency = stats.get("latencyMsP50")
+        return last_ok, last_err, latency
+
+    gh_last, gh_le, gh_lat = _merge("github", gh_err)
+    jira_last, jira_le, jira_lat = _merge("jira", jira_err)
+    gmail_last, gmail_le, gmail_lat = _merge(
+        "gmail", None if gmail_status == "healthy" else gmail_err
+    )
+    cal_last, cal_le, cal_lat = _merge("calendar", cal_err if cal_status != "healthy" else None)
+
     integrations = [
         {
             "name": "github",
             "displayName": "GitHub (MCP + App)",
             "status": gh_status,
             "credentialsConfigured": gh_configured,
-            "lastSuccessfulCallAt": None,
-            "lastError": gh_err,
+            "lastSuccessfulCallAt": gh_last,
+            "lastError": gh_le,
             "rateLimitRemaining": None,
             "rateLimitResetAt": None,
-            "latencyMsP50": None,
+            "latencyMsP50": gh_lat,
             "checkedAt": checked_at,
             "transport": "mcp+app",
             "config": {
@@ -149,11 +175,11 @@ def integrations_console_payload() -> dict[str, Any]:
             "displayName": "Jira (Atlassian MCP)",
             "status": jira_status,
             "credentialsConfigured": jira_configured,
-            "lastSuccessfulCallAt": None,
-            "lastError": jira_err,
+            "lastSuccessfulCallAt": jira_last,
+            "lastError": jira_le,
             "rateLimitRemaining": None,
             "rateLimitResetAt": None,
-            "latencyMsP50": None,
+            "latencyMsP50": jira_lat,
             "checkedAt": checked_at,
             "transport": "mcp",
             "config": {
@@ -170,11 +196,11 @@ def integrations_console_payload() -> dict[str, Any]:
             "displayName": "Gmail (native OAuth)",
             "status": gmail_status,
             "credentialsConfigured": bool(gmail.get("configured")),
-            "lastSuccessfulCallAt": None,
-            "lastError": None if gmail_status == "healthy" else gmail_err,
+            "lastSuccessfulCallAt": gmail_last,
+            "lastError": gmail_le,
             "rateLimitRemaining": None,
             "rateLimitResetAt": None,
-            "latencyMsP50": None,
+            "latencyMsP50": gmail_lat,
             "checkedAt": checked_at,
             "transport": "native",
             "config": {
@@ -192,11 +218,11 @@ def integrations_console_payload() -> dict[str, Any]:
             "displayName": "Calendar (native OAuth)",
             "status": cal_status,
             "credentialsConfigured": cal_configured,
-            "lastSuccessfulCallAt": None,
-            "lastError": cal_err if cal_status != "healthy" else None,
+            "lastSuccessfulCallAt": cal_last,
+            "lastError": cal_le,
             "rateLimitRemaining": None,
             "rateLimitResetAt": None,
-            "latencyMsP50": None,
+            "latencyMsP50": cal_lat,
             "checkedAt": checked_at,
             "transport": "native",
             "config": {
@@ -234,7 +260,11 @@ def smoke_github_mcp_list() -> dict[str, Any]:
     return list_mcp_tools(url=url, headers=headers, name="github_mcp")
 
 
-def smoke_jira_mcp_create(*, summary: str | None = None) -> dict[str, Any]:
+def smoke_jira_mcp_create(
+    *,
+    summary: str | None = None,
+    project_key: str | None = None,
+) -> dict[str, Any]:
     from aip.connectors.mcp_client import call_mcp_tool, jira_mcp_headers
 
     try:
@@ -257,7 +287,7 @@ def smoke_jira_mcp_create(*, summary: str | None = None) -> dict[str, Any]:
     if not cloud_id:
         return {"ok": False, "error": "Set ATLASSIAN_CLOUD_ID"}
 
-    project = (settings.smoke_jira_project_key or "").strip()
+    project = (project_key or settings.smoke_jira_project_key or "").strip()
     if not project:
         listed = call_mcp_tool(
             url=settings.connected_system_jira_mcp_url,
@@ -304,6 +334,140 @@ def smoke_jira_mcp_create(*, summary: str | None = None) -> dict[str, Any]:
         "evidence": evidence,
         "result": str(result.get("result"))[:500],
     }
+
+
+def smoke_jira_mcp_transition(
+    *,
+    issue_key: str,
+    transition_id: str | None = None,
+    transition_name: str | None = None,
+) -> dict[str, Any]:
+    """Transition a Jira issue via Atlassian MCP."""
+    from aip.connectors.mcp_client import call_mcp_tool, jira_mcp_headers
+
+    try:
+        headers = jira_mcp_headers()
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)}
+
+    cloud_id = (settings.atlassian_cloud_id or "").strip()
+    if not cloud_id:
+        resources = call_mcp_tool(
+            url=settings.connected_system_jira_mcp_url,
+            headers=headers,
+            name="jira_mcp",
+            tool_name="getAccessibleAtlassianResources",
+            arguments={},
+        )
+        if resources.get("ok"):
+            cloud_id = _first_cloud_id(resources.get("result"))
+    if not cloud_id:
+        return {"ok": False, "error": "Set ATLASSIAN_CLOUD_ID"}
+
+    tid = (transition_id or "").strip()
+    if not tid:
+        # Discover transitions then pick by name or first available
+        listed = call_mcp_tool(
+            url=settings.connected_system_jira_mcp_url,
+            headers=headers,
+            name="jira_mcp",
+            tool_name="getTransitionsForJiraIssue",
+            arguments={"cloudId": cloud_id, "issueIdOrKey": issue_key},
+        )
+        if not listed.get("ok"):
+            # Alternate tool name used by some MCP builds
+            listed = call_mcp_tool(
+                url=settings.connected_system_jira_mcp_url,
+                headers=headers,
+                name="jira_mcp",
+                tool_name="getJiraIssueTransitions",
+                arguments={"cloudId": cloud_id, "issueIdOrKey": issue_key},
+            )
+        tid = _pick_transition_id(listed.get("result") if listed.get("ok") else None, transition_name)
+    if not tid:
+        return {
+            "ok": False,
+            "error": "Could not resolve transition_id; pass transition_id or transition_name",
+        }
+
+    result = call_mcp_tool(
+        url=settings.connected_system_jira_mcp_url,
+        headers=headers,
+        name="jira_mcp",
+        tool_name="transitionJiraIssue",
+        arguments={
+            "cloudId": cloud_id,
+            "issueIdOrKey": issue_key,
+            "transitionId": tid,
+        },
+    )
+    if not result.get("ok"):
+        # Alternate tool name
+        result = call_mcp_tool(
+            url=settings.connected_system_jira_mcp_url,
+            headers=headers,
+            name="jira_mcp",
+            tool_name="transitionIssue",
+            arguments={
+                "cloudId": cloud_id,
+                "issueIdOrKey": issue_key,
+                "transitionId": tid,
+            },
+        )
+    if not result.get("ok"):
+        return {"ok": False, "system": "jira", "error": "transition failed", "last": result}
+
+    browse = ""
+    site = (settings.atlassian_cloud_id or "").strip()
+    # Prefer browse URL pattern from create evidence helper
+    evidence = {
+        "issue_key": issue_key,
+        "transition_id": tid,
+        "browse_url": browse or f"https://jira.atlassian.com/browse/{issue_key}",
+    }
+    return {
+        "ok": True,
+        "system": "jira",
+        "tool": "transitionJiraIssue",
+        "evidence": evidence,
+        "result": str(result.get("result"))[:500],
+    }
+
+
+def _pick_transition_id(payload: Any, preferred_name: str | None) -> str:
+    import json
+    import re
+
+    text = payload
+    if isinstance(payload, dict) and "content" in payload:
+        parts = payload.get("content") or []
+        text = "\n".join(str(x) for x in parts) if isinstance(parts, list) else parts
+    blob = str(text or "")
+    data = None
+    try:
+        data = json.loads(blob) if blob.strip().startswith(("{", "[")) else None
+    except json.JSONDecodeError:
+        data = None
+    rows: list[dict[str, Any]] = []
+    if isinstance(data, dict):
+        for key in ("transitions", "values", "data"):
+            if isinstance(data.get(key), list):
+                rows = [x for x in data[key] if isinstance(x, dict)]
+                break
+        if not rows and data.get("id"):
+            rows = [data]
+    elif isinstance(data, list):
+        rows = [x for x in data if isinstance(x, dict)]
+    pref = (preferred_name or "").strip().lower()
+    if pref:
+        for row in rows:
+            name = str(row.get("name") or row.get("to") or "").lower()
+            if pref in name:
+                return str(row.get("id") or "").strip()
+    if rows:
+        return str(rows[0].get("id") or "").strip()
+    m = re.search(r'"id"\s*:\s*"?(\d+)"?', blob)
+    return m.group(1) if m else ""
 
 
 def _first_cloud_id(payload: Any) -> str:

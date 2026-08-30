@@ -1,0 +1,2086 @@
+{
+    "nodes": [
+      {
+        "id": "repo-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1",
+        "identity": {
+          "name": "CHAT-SYSTEM",
+          "entity_type": "GitRepository",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "github",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "engineering",
+          "category": "code",
+          "type": "repository",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "GitHub Repository navdeep-r/CHAT-SYSTEM",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 7,
+        "type": "repository",
+        "name": "CHAT-SYSTEM",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "github",
+        "need_attention": false,
+        "summary": "GitHub Repository navdeep-r/CHAT-SYSTEM"
+      },
+      {
+        "id": "file-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-90649105-0a9e-4dc4-a521-58ac4f42bcd6",
+        "identity": {
+          "name": "chat.css",
+          "entity_type": "GitFile",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "github",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "engineering",
+          "category": "code",
+          "type": "file",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Primary purpose: Styles the chat interface with a clean, modern layout using flexbox.\nKey classes: .container, .chat-area, .message (left/right), .send-form, .message-input, .send-button.\nMain dependencies: None (pure CSS).\nInputs/outputs: Styles HTML elements via class selectors; outputs visual presentation.\nArchitecture role: Presentation layer for the chat client.\nNotable patterns: Flexbox column layout, fade-in animation, responsive input focus states.",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "file",
+        "name": "chat.css",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "github",
+        "need_attention": false,
+        "summary": "Primary purpose: Styles the chat interface with a clean, modern layout using flexbox.\nKey classes: .container, .chat-area, .message (left/right), .send-form, .message-input, .send-button.\nMain dependencies: None (pure CSS).\nInputs/outputs: Styles HTML elements via class selectors; outputs visual presentation.\nArchitecture role: Presentation layer for the chat client.\nNotable patterns: Flexbox column layout, fade-in animation, responsive input focus states."
+      },
+      {
+        "id": "file-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-b7e77ba2-9fd0-4de6-a0d2-566caf94b393",
+        "identity": {
+          "name": "chat.html",
+          "entity_type": "GitFile",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "github",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "engineering",
+          "category": "code",
+          "type": "file",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Primary purpose: Provides the chat UI structure and client-side WebSocket communication logic.\nKey elements/functions: #chatArea, #messageForm, .message-input, WebSocket event handlers.\nMain dependencies: chat.css for styling; browser WebSocket API.\nInputs/outputs: User input sends JSON messages; receives messages and appends to DOM.\nArchitecture role: Frontend client in a client-server WebSocket architecture.\nNotable patterns: Dynamic message rendering with sender differentiation, auto-scroll.",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "file",
+        "name": "chat.html",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "github",
+        "need_attention": false,
+        "summary": "Primary purpose: Provides the chat UI structure and client-side WebSocket communication logic.\nKey elements/functions: #chatArea, #messageForm, .message-input, WebSocket event handlers.\nMain dependencies: chat.css for styling; browser WebSocket API.\nInputs/outputs: User input sends JSON messages; receives messages and appends to DOM.\nArchitecture role: Frontend client in a client-server WebSocket architecture.\nNotable patterns: Dynamic message rendering with sender differentiation, auto-scroll."
+      },
+      {
+        "id": "file-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-6f99689e-fd11-492c-85c4-9f1548eaac20",
+        "identity": {
+          "name": "chat.js",
+          "entity_type": "GitFile",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "github",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "engineering",
+          "category": "code",
+          "type": "file",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Primary purpose: Implements a WebSocket chat server that broadcasts messages to all connected clients.\nKey classes/functions: WebSocket.Server, connection handler, message broadcast loop, UUID generation.\nMain dependencies: express, ws, http, uuid.\nInputs/outputs: Accepts WebSocket connections; receives messages and broadcasts enriched JSON to all clients.\nArchitecture role: Backend server handling real-time messaging.\nNotable patterns: Client identification via UUID, broadcast to all open connections, static file serving.",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "file",
+        "name": "chat.js",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "github",
+        "need_attention": false,
+        "summary": "Primary purpose: Implements a WebSocket chat server that broadcasts messages to all connected clients.\nKey classes/functions: WebSocket.Server, connection handler, message broadcast loop, UUID generation.\nMain dependencies: express, ws, http, uuid.\nInputs/outputs: Accepts WebSocket connections; receives messages and broadcasts enriched JSON to all clients.\nArchitecture role: Backend server handling real-time messaging.\nNotable patterns: Client identification via UUID, broadcast to all open connections, static file serving."
+      },
+      {
+        "id": "file-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-8218534e-5ea4-49a1-8831-beb6c678dfa4",
+        "identity": {
+          "name": "package.json",
+          "entity_type": "GitFile",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "github",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "engineering",
+          "category": "code",
+          "type": "file",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Primary purpose: Defines project metadata, entry point, scripts, and npm dependencies.\nKey fields: name, version, main (server.js), scripts (start), dependencies (express, ws, uuid, socket.io).\nMain dependencies: express, ws, uuid, socket.io (unused).\nInputs/outputs: Consumed by npm to install packages and run scripts; outputs node_modules.\nArchitecture role: Project configuration and dependency management.\nNotable patterns: Includes both ws and socket.io despite using only ws; start script references server.js but main is chat.js.",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "file",
+        "name": "package.json",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "github",
+        "need_attention": false,
+        "summary": "Primary purpose: Defines project metadata, entry point, scripts, and npm dependencies.\nKey fields: name, version, main (server.js), scripts (start), dependencies (express, ws, uuid, socket.io).\nMain dependencies: express, ws, uuid, socket.io (unused).\nInputs/outputs: Consumed by npm to install packages and run scripts; outputs node_modules.\nArchitecture role: Project configuration and dependency management.\nNotable patterns: Includes both ws and socket.io despite using only ws; start script references server.js but main is chat.js."
+      },
+      {
+        "id": "commit-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-1bd0ff6fb2ccba8418f8e45acb90761f2c1ebc76",
+        "identity": {
+          "name": "Commit 1bd0ff6",
+          "entity_type": "GitCommit",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "github",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "engineering",
+          "category": "code",
+          "type": "commit",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Commit 1bd0ff6 by navdeep-r:\nRemoved filename from repository",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 3,
+        "type": "commit",
+        "name": "Commit 1bd0ff6",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "github",
+        "need_attention": false,
+        "summary": "Commit 1bd0ff6 by navdeep-r:\nRemoved filename from repository"
+      },
+      {
+        "id": "dev-navdeep-r",
+        "identity": {
+          "name": "navdeep-r",
+          "entity_type": "Developer",
+          "subtype": "developer"
+        },
+        "source": {
+          "source_type": "github",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "engineering",
+          "category": "person",
+          "type": "person",
+          "subtype": "developer",
+          "tags": []
+        },
+        "semantic": {
+          "summary": "GitHub developer navdeep-r",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 3,
+        "type": "person",
+        "name": "navdeep-r",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "github",
+        "need_attention": false,
+        "summary": "GitHub developer navdeep-r"
+      },
+      {
+        "id": "commit-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-be17438a55f1ed68511977f962791228831053ef",
+        "identity": {
+          "name": "Commit be17438",
+          "entity_type": "GitCommit",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "github",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "engineering",
+          "category": "code",
+          "type": "commit",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Commit be17438 by navdeep-r:\nfirst commit",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 3,
+        "type": "commit",
+        "name": "Commit be17438",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "github",
+        "need_attention": false,
+        "summary": "Commit be17438 by navdeep-r:\nfirst commit"
+      },
+      {
+        "id": "mail-1a03cc829801964a",
+        "identity": {
+          "name": "Email: sorry",
+          "entity_type": "Email",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "mail",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "operations",
+          "category": "communication",
+          "type": "email",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Subject: sorry\nFrom: Navdeep <ilovemyfreecredits1@gmail.com>\nTo: Navdeep <navdeeprajini27@gmail.com>\nDate: Wed, 26 Aug 2026 12:05:40 +0530\nLabels: SENT\n\nwe will look into issue and fix it",
+          "description": null
+        },
+        "attention": {
+          "required": true,
+          "type": "action_required",
+          "priority": "medium",
+          "reason": "Flagged during ingestion or dependency analysis.",
+          "recommended_agent": "Developer",
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 1,
+        "type": "email",
+        "name": "Email: sorry",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "mail",
+        "need_attention": true,
+        "summary": "Subject: sorry\nFrom: Navdeep <ilovemyfreecredits1@gmail.com>\nTo: Navdeep <navdeeprajini27@gmail.com>\nDate: Wed, 26 Aug 2026 12:05:40 +0530\nLabels: SENT\n\nwe will look into issue and fix it"
+      },
+      {
+        "id": "mail-1a03c9f3aed8a94a",
+        "identity": {
+          "name": "Email: product not working",
+          "entity_type": "Email",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "mail",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "operations",
+          "category": "communication",
+          "type": "email",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Subject: product not working\nFrom: Navdeep R <navdeeprajini27@gmail.com>\nTo: \"ilovemyfreecredits1@gmail.com\" <ilovemyfreecredits1@gmail.com>\nDate: Wed, 26 Aug 2026 11:20:46 +0530\nLabels: UNREAD, IMPOR...",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 1,
+        "type": "email",
+        "name": "Email: product not working",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "mail",
+        "need_attention": false,
+        "summary": "Subject: product not working\nFrom: Navdeep R <navdeeprajini27@gmail.com>\nTo: \"ilovemyfreecredits1@gmail.com\" <ilovemyfreecredits1@gmail.com>\nDate: Wed, 26 Aug 2026 11:20:46 +0530\nLabels: UNREAD, IMPOR..."
+      },
+      {
+        "id": "doc-doc-data-txt-7c57cda0",
+        "identity": {
+          "name": "DATA.txt",
+          "entity_type": "Document",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "unknown",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": null,
+          "category": null,
+          "type": null,
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Uploaded document: DATA.txt",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 1,
+        "type": "Document",
+        "name": "DATA.txt",
+        "group_id": "synapse",
+        "source_id": "unknown",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Uploaded document: DATA.txt"
+      },
+      {
+        "id": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "identity": {
+          "name": "Acme Corp",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme Corp headquarters are located at the San Francisco Office, which serves as the central hub for all executive and engineering operations.\nAcme Corp operates a dedicated research division known as Acme R&D.\nAcme R&D functions as an independent subsidiary and officially belongs to Acme Corp.\nAcme R&D follows the same corporate governance policies as Acme Corp.\nAcme Corp maintains Acme AI Platform as a flagship product line\nAcme Corp maintains Acme Data Platform as a major product line\nSecurity Policy belongs to Acme Corp\nRunbook belongs to Acme Corp\nISO 27001 Certification belongs to Acme Corp\nAcme Corp was awarded by TechCrunch for excellence in cloud-native AI deployment",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 11,
+        "type": "document",
+        "name": "Acme Corp",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme Corp headquarters are located at the San Francisco Office, which serves as the central hub for all executive and engineering operations.\nAcme Corp operates a dedicated research division known as Acme R&D.\nAcme R&D functions as an independent subsidiary and officially belongs to Acme Corp.\nAcme R&D follows the same corporate governance policies as Acme Corp.\nAcme Corp maintains Acme AI Platform as a flagship product line\nAcme Corp maintains Acme Data Platform as a major product line\nSecurity Policy belongs to Acme Corp\nRunbook belongs to Acme Corp\nISO 27001 Certification belongs to Acme Corp\nAcme Corp was awarded by TechCrunch for excellence in cloud-native AI deployment"
+      },
+      {
+        "id": "b45e1200-c7e3-43ec-b016-e38c6aef0a10",
+        "identity": {
+          "name": "San Francisco Office",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme Corp headquarters are located at the San Francisco Office, which serves as the central hub for all executive and engineering operations.",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "document",
+        "name": "San Francisco Office",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme Corp headquarters are located at the San Francisco Office, which serves as the central hub for all executive and engineering operations."
+      },
+      {
+        "id": "69815270-634c-43bc-8dc4-b9688925ac20",
+        "identity": {
+          "name": "Acme R&D",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme Corp operates a dedicated research division known as Acme R&D.\nAcme R&D functions as an independent subsidiary and officially belongs to Acme Corp.\nAcme R&D follows the same corporate governance policies as Acme Corp.",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 4,
+        "type": "document",
+        "name": "Acme R&D",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme Corp operates a dedicated research division known as Acme R&D.\nAcme R&D functions as an independent subsidiary and officially belongs to Acme Corp.\nAcme R&D follows the same corporate governance policies as Acme Corp."
+      },
+      {
+        "id": "45024b6f-351f-4f23-9fea-507b354475b0",
+        "identity": {
+          "name": "Acme AI Platform",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme Corp maintains Acme AI Platform as a flagship product line\nJane Smith is the designated product owner of Acme AI Platform\nAcme AI Platform uses Acme Data Platform for structured data processing\nAcme AI Platform uses acme-ml repository for model training and inference pipelines\nAcme AI Platform has a hard dependency on Acme Cloud for compute and storage resources\nRunbook provides step-by-step recovery instructions for Acme AI Platform",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 7,
+        "type": "document",
+        "name": "Acme AI Platform",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme Corp maintains Acme AI Platform as a flagship product line\nJane Smith is the designated product owner of Acme AI Platform\nAcme AI Platform uses Acme Data Platform for structured data processing\nAcme AI Platform uses acme-ml repository for model training and inference pipelines\nAcme AI Platform has a hard dependency on Acme Cloud for compute and storage resources\nRunbook provides step-by-step recovery instructions for Acme AI Platform"
+      },
+      {
+        "id": "b31b335e-cff2-4a8d-a8db-7be0cffad145",
+        "identity": {
+          "name": "Acme Data Platform",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme Corp maintains Acme Data Platform as a major product line\nJane Smith manages Acme Data Platform\nAcme AI Platform uses Acme Data Platform for structured data processing\nAcme Data Platform uses acme-backend repository to serve API endpoints\nAcme Data Platform depends on Acme Cloud for underlying database and networking infrastructure",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 6,
+        "type": "document",
+        "name": "Acme Data Platform",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme Corp maintains Acme Data Platform as a major product line\nJane Smith manages Acme Data Platform\nAcme AI Platform uses Acme Data Platform for structured data processing\nAcme Data Platform uses acme-backend repository to serve API endpoints\nAcme Data Platform depends on Acme Cloud for underlying database and networking infrastructure"
+      },
+      {
+        "id": "61d30c11-d43d-4918-bb16-c775ddf8f466",
+        "identity": {
+          "name": "Acme Cloud",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme AI Platform has a hard dependency on Acme Cloud for compute and storage resources\nAcme Data Platform depends on Acme Cloud for underlying database and networking infrastructure\nAcme Cloud is managed by John Doe\nAcme Cloud uses the acme-infra repository\nRunbook provides step-by-step recovery instructions for Acme Cloud",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 6,
+        "type": "document",
+        "name": "Acme Cloud",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme AI Platform has a hard dependency on Acme Cloud for compute and storage resources\nAcme Data Platform depends on Acme Cloud for underlying database and networking infrastructure\nAcme Cloud is managed by John Doe\nAcme Cloud uses the acme-infra repository\nRunbook provides step-by-step recovery instructions for Acme Cloud"
+      },
+      {
+        "id": "9b314f59-44ba-4760-822f-d46ccb7771ea",
+        "identity": {
+          "name": "Jane Smith",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Jane Smith is the designated product owner of Acme AI Platform\nJane Smith manages Acme Data Platform",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 3,
+        "type": "document",
+        "name": "Jane Smith",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Jane Smith is the designated product owner of Acme AI Platform\nJane Smith manages Acme Data Platform"
+      },
+      {
+        "id": "f0dfa699-57c1-408c-b2ae-cdacfe89f9f1",
+        "identity": {
+          "name": "acme-ml repository",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme AI Platform uses acme-ml repository for model training and inference pipelines\nBob Williams actively uses acme-ml to deploy new ML models and optimize API response times",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 3,
+        "type": "document",
+        "name": "acme-ml repository",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme AI Platform uses acme-ml repository for model training and inference pipelines\nBob Williams actively uses acme-ml to deploy new ML models and optimize API response times"
+      },
+      {
+        "id": "48fb9ac6-7a4f-4c57-acdc-f548b8356004",
+        "identity": {
+          "name": "acme-backend repository",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme Data Platform uses acme-backend repository to serve API endpoints\nBob Williams actively uses acme-backend to deploy new ML models and optimize API response times",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 3,
+        "type": "document",
+        "name": "acme-backend repository",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme Data Platform uses acme-backend repository to serve API endpoints\nBob Williams actively uses acme-backend to deploy new ML models and optimize API response times"
+      },
+      {
+        "id": "1bd23e05-a51e-486d-a482-7618db15abba",
+        "identity": {
+          "name": "John Doe",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme Cloud is managed by John Doe\nSecurity Policy is managed by John Doe who reviews and approves all updates quarterly",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 3,
+        "type": "document",
+        "name": "John Doe",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme Cloud is managed by John Doe\nSecurity Policy is managed by John Doe who reviews and approves all updates quarterly"
+      },
+      {
+        "id": "efc3b816-9eb5-4b53-b867-252826903529",
+        "identity": {
+          "name": "acme-infra repository",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme Cloud uses the acme-infra repository\nThe acme-infra repository contains Terraform\nThe acme-infra repository contains Kubernetes manifests\nCarol Brown has read access to acme-infra for monitoring purposes",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 5,
+        "type": "document",
+        "name": "acme-infra repository",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme Cloud uses the acme-infra repository\nThe acme-infra repository contains Terraform\nThe acme-infra repository contains Kubernetes manifests\nCarol Brown has read access to acme-infra for monitoring purposes"
+      },
+      {
+        "id": "1309e909-c561-42bb-b2e4-9792e6a4ca37",
+        "identity": {
+          "name": "Terraform",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "The acme-infra repository contains Terraform",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "document",
+        "name": "Terraform",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "The acme-infra repository contains Terraform"
+      },
+      {
+        "id": "00bcd45a-e72a-4aab-8e7e-9f66b36648fd",
+        "identity": {
+          "name": "Kubernetes",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "The acme-infra repository contains Kubernetes manifests",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "document",
+        "name": "Kubernetes",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "The acme-infra repository contains Kubernetes manifests"
+      },
+      {
+        "id": "6c90eccd-271e-417c-85c9-10fcddc5570b",
+        "identity": {
+          "name": "Acme Internal Tools",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Carol Brown is the primary contributor to Acme Internal Tools\nCarol Brown uses Acme Internal Tools daily",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 3,
+        "type": "document",
+        "name": "Acme Internal Tools",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Carol Brown is the primary contributor to Acme Internal Tools\nCarol Brown uses Acme Internal Tools daily"
+      },
+      {
+        "id": "49bacb4f-91c6-4147-bf0e-d9801695ce0d",
+        "identity": {
+          "name": "Carol Brown",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Carol Brown is the primary contributor to Acme Internal Tools\nCarol Brown uses Acme Internal Tools daily\nCarol Brown streamlines DevOps tasks using Acme Internal Tools\nCarol Brown has read access to acme-infra for monitoring purposes",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 5,
+        "type": "document",
+        "name": "Carol Brown",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Carol Brown is the primary contributor to Acme Internal Tools\nCarol Brown uses Acme Internal Tools daily\nCarol Brown streamlines DevOps tasks using Acme Internal Tools\nCarol Brown has read access to acme-infra for monitoring purposes"
+      },
+      {
+        "id": "fe45cb9c-48e1-4e10-8180-483faa0de9cf",
+        "identity": {
+          "name": "DevOps",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Carol Brown streamlines DevOps tasks using Acme Internal Tools",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "document",
+        "name": "DevOps",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Carol Brown streamlines DevOps tasks using Acme Internal Tools"
+      },
+      {
+        "id": "697853ce-a247-4384-afd3-2a39e0a4b074",
+        "identity": {
+          "name": "Alice Johnson",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Alice Johnson actively uses acme-frontend for feature development and bug fixes",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "document",
+        "name": "Alice Johnson",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Alice Johnson actively uses acme-frontend for feature development and bug fixes"
+      },
+      {
+        "id": "b67a6030-bf16-41c3-a1a5-87f5429311f6",
+        "identity": {
+          "name": "acme-frontend",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Alice Johnson actively uses acme-frontend for feature development and bug fixes",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "document",
+        "name": "acme-frontend",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Alice Johnson actively uses acme-frontend for feature development and bug fixes"
+      },
+      {
+        "id": "4c0508c5-16c5-4669-b7a3-abdf2f4d2622",
+        "identity": {
+          "name": "Bob Williams",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Bob Williams actively uses acme-ml to deploy new ML models and optimize API response times\nBob Williams actively uses acme-backend to deploy new ML models and optimize API response times",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 3,
+        "type": "document",
+        "name": "Bob Williams",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Bob Williams actively uses acme-ml to deploy new ML models and optimize API response times\nBob Williams actively uses acme-backend to deploy new ML models and optimize API response times"
+      },
+      {
+        "id": "4fae372a-9c41-4d85-adbf-1789af40b82b",
+        "identity": {
+          "name": "Security Policy",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "compliance",
+          "category": "document",
+          "type": "policy",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Security Policy belongs to Acme Corp\nSecurity Policy is managed by John Doe who reviews and approves all updates quarterly",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 3,
+        "type": "policy",
+        "name": "Security Policy",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Security Policy belongs to Acme Corp\nSecurity Policy is managed by John Doe who reviews and approves all updates quarterly"
+      },
+      {
+        "id": "2d484a50-ee72-43bb-a8c2-ce8bffdc8d57",
+        "identity": {
+          "name": "Runbook",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Runbook belongs to Acme Corp\nRunbook provides step-by-step recovery instructions for Acme Cloud\nRunbook provides step-by-step recovery instructions for Acme AI Platform",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 4,
+        "type": "document",
+        "name": "Runbook",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Runbook belongs to Acme Corp\nRunbook provides step-by-step recovery instructions for Acme Cloud\nRunbook provides step-by-step recovery instructions for Acme AI Platform"
+      },
+      {
+        "id": "78b60ee0-d32e-4081-bcb9-b628e5e48cc2",
+        "identity": {
+          "name": "ISO 27001 Certification",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "ISO 27001 Certification belongs to Acme Corp",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "document",
+        "name": "ISO 27001 Certification",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "ISO 27001 Certification belongs to Acme Corp"
+      },
+      {
+        "id": "30ff1bad-cada-4645-96c0-4ab7843f01e4",
+        "identity": {
+          "name": "TechCrunch",
+          "entity_type": "Entity",
+          "subtype": null
+        },
+        "source": {
+          "source_type": "upload",
+          "source_id": "upload",
+          "external_id": null,
+          "external_url": null
+        },
+        "classification": {
+          "domain": "knowledge",
+          "category": "document",
+          "type": "document",
+          "subtype": null,
+          "tags": []
+        },
+        "semantic": {
+          "summary": "Acme Corp was awarded by TechCrunch for excellence in cloud-native AI deployment",
+          "description": null
+        },
+        "attention": {
+          "required": false,
+          "type": "none",
+          "priority": null,
+          "reason": null,
+          "recommended_agent": null,
+          "recommended_action": null,
+          "requires_human_approval": false
+        },
+        "source_metadata": {
+          "github": null,
+          "mail": null,
+          "document": null
+        },
+        "provenance": {
+          "source_ids": [],
+          "episode_ids": [],
+          "document_ids": []
+        },
+        "val": 2,
+        "type": "document",
+        "name": "TechCrunch",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload",
+        "need_attention": false,
+        "summary": "Acme Corp was awarded by TechCrunch for excellence in cloud-native AI deployment"
+      }
+    ],
+    "links": [
+      {
+        "source": "repo-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1",
+        "target": "file-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-90649105-0a9e-4dc4-a521-58ac4f42bcd6",
+        "relation_type": "CONTAINS",
+        "group_id": "synapse",
+        "source_id": null,
+        "source_type": null
+      },
+      {
+        "source": "repo-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1",
+        "target": "file-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-b7e77ba2-9fd0-4de6-a0d2-566caf94b393",
+        "relation_type": "CONTAINS",
+        "group_id": "synapse",
+        "source_id": null,
+        "source_type": null
+      },
+      {
+        "source": "repo-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1",
+        "target": "file-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-6f99689e-fd11-492c-85c4-9f1548eaac20",
+        "relation_type": "CONTAINS",
+        "group_id": "synapse",
+        "source_id": null,
+        "source_type": null
+      },
+      {
+        "source": "repo-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1",
+        "target": "file-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-8218534e-5ea4-49a1-8831-beb6c678dfa4",
+        "relation_type": "CONTAINS",
+        "group_id": "synapse",
+        "source_id": null,
+        "source_type": null
+      },
+      {
+        "source": "repo-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1",
+        "target": "commit-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-1bd0ff6fb2ccba8418f8e45acb90761f2c1ebc76",
+        "relation_type": "CONTAINS",
+        "group_id": "synapse",
+        "source_id": null,
+        "source_type": null
+      },
+      {
+        "source": "repo-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1",
+        "target": "commit-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-be17438a55f1ed68511977f962791228831053ef",
+        "relation_type": "CONTAINS",
+        "group_id": "synapse",
+        "source_id": null,
+        "source_type": null
+      },
+      {
+        "source": "commit-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-1bd0ff6fb2ccba8418f8e45acb90761f2c1ebc76",
+        "target": "dev-navdeep-r",
+        "relation_type": "AUTHORED_BY",
+        "group_id": "synapse",
+        "source_id": null,
+        "source_type": null
+      },
+      {
+        "source": "commit-ccfaa47e-4a38-44a5-a1a9-a0d417abcde1-be17438a55f1ed68511977f962791228831053ef",
+        "target": "dev-navdeep-r",
+        "relation_type": "AUTHORED_BY",
+        "group_id": "synapse",
+        "source_id": null,
+        "source_type": null
+      },
+      {
+        "source": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "target": "b45e1200-c7e3-43ec-b016-e38c6aef0a10",
+        "relation_type": "HEADQUARTERS_LOCATED_AT",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "target": "69815270-634c-43bc-8dc4-b9688925ac20",
+        "relation_type": "OPERATES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "target": "45024b6f-351f-4f23-9fea-507b354475b0",
+        "relation_type": "HAS_PRODUCT_LINE",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "target": "b31b335e-cff2-4a8d-a8db-7be0cffad145",
+        "relation_type": "HAS_PRODUCT_LINE",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "target": "30ff1bad-cada-4645-96c0-4ab7843f01e4",
+        "relation_type": "AWARDED_BY",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "69815270-634c-43bc-8dc4-b9688925ac20",
+        "target": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "relation_type": "IS_SUBSIDIARY_OF",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "69815270-634c-43bc-8dc4-b9688925ac20",
+        "target": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "relation_type": "FOLLOWS_CORPORATE_GOVERNANCE_OF",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "45024b6f-351f-4f23-9fea-507b354475b0",
+        "target": "b31b335e-cff2-4a8d-a8db-7be0cffad145",
+        "relation_type": "USES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "45024b6f-351f-4f23-9fea-507b354475b0",
+        "target": "61d30c11-d43d-4918-bb16-c775ddf8f466",
+        "relation_type": "HAS_HARD_DEPENDENCY_ON",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "45024b6f-351f-4f23-9fea-507b354475b0",
+        "target": "f0dfa699-57c1-408c-b2ae-cdacfe89f9f1",
+        "relation_type": "USES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "b31b335e-cff2-4a8d-a8db-7be0cffad145",
+        "target": "61d30c11-d43d-4918-bb16-c775ddf8f466",
+        "relation_type": "DEPENDS_ON",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "b31b335e-cff2-4a8d-a8db-7be0cffad145",
+        "target": "48fb9ac6-7a4f-4c57-acdc-f548b8356004",
+        "relation_type": "USES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "61d30c11-d43d-4918-bb16-c775ddf8f466",
+        "target": "1bd23e05-a51e-486d-a482-7618db15abba",
+        "relation_type": "MANAGED_BY",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "61d30c11-d43d-4918-bb16-c775ddf8f466",
+        "target": "efc3b816-9eb5-4b53-b867-252826903529",
+        "relation_type": "USES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "9b314f59-44ba-4760-822f-d46ccb7771ea",
+        "target": "45024b6f-351f-4f23-9fea-507b354475b0",
+        "relation_type": "IS_PRODUCT_OWNER_OF",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "9b314f59-44ba-4760-822f-d46ccb7771ea",
+        "target": "b31b335e-cff2-4a8d-a8db-7be0cffad145",
+        "relation_type": "MANAGES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "efc3b816-9eb5-4b53-b867-252826903529",
+        "target": "1309e909-c561-42bb-b2e4-9792e6a4ca37",
+        "relation_type": "CONTAINS",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "efc3b816-9eb5-4b53-b867-252826903529",
+        "target": "00bcd45a-e72a-4aab-8e7e-9f66b36648fd",
+        "relation_type": "CONTAINS",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "49bacb4f-91c6-4147-bf0e-d9801695ce0d",
+        "target": "efc3b816-9eb5-4b53-b867-252826903529",
+        "relation_type": "HAS_READ_ACCESS_TO",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "49bacb4f-91c6-4147-bf0e-d9801695ce0d",
+        "target": "6c90eccd-271e-417c-85c9-10fcddc5570b",
+        "relation_type": "PRIMARY_CONTRIBUTOR_TO",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "49bacb4f-91c6-4147-bf0e-d9801695ce0d",
+        "target": "6c90eccd-271e-417c-85c9-10fcddc5570b",
+        "relation_type": "USES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "49bacb4f-91c6-4147-bf0e-d9801695ce0d",
+        "target": "fe45cb9c-48e1-4e10-8180-483faa0de9cf",
+        "relation_type": "STREAMLINES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "697853ce-a247-4384-afd3-2a39e0a4b074",
+        "target": "b67a6030-bf16-41c3-a1a5-87f5429311f6",
+        "relation_type": "USES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "4c0508c5-16c5-4669-b7a3-abdf2f4d2622",
+        "target": "f0dfa699-57c1-408c-b2ae-cdacfe89f9f1",
+        "relation_type": "USES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "4c0508c5-16c5-4669-b7a3-abdf2f4d2622",
+        "target": "48fb9ac6-7a4f-4c57-acdc-f548b8356004",
+        "relation_type": "USES",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "4fae372a-9c41-4d85-adbf-1789af40b82b",
+        "target": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "relation_type": "BELONGS_TO",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "4fae372a-9c41-4d85-adbf-1789af40b82b",
+        "target": "1bd23e05-a51e-486d-a482-7618db15abba",
+        "relation_type": "MANAGED_BY",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "2d484a50-ee72-43bb-a8c2-ce8bffdc8d57",
+        "target": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "relation_type": "BELONGS_TO",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "2d484a50-ee72-43bb-a8c2-ce8bffdc8d57",
+        "target": "45024b6f-351f-4f23-9fea-507b354475b0",
+        "relation_type": "PROVIDES_RECOVERY_INSTRUCTIONS_FOR",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "2d484a50-ee72-43bb-a8c2-ce8bffdc8d57",
+        "target": "61d30c11-d43d-4918-bb16-c775ddf8f466",
+        "relation_type": "PROVIDES_RECOVERY_INSTRUCTIONS_FOR",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      },
+      {
+        "source": "78b60ee0-d32e-4081-bcb9-b628e5e48cc2",
+        "target": "979c2334-846e-4ff7-90df-9730d1a7711b",
+        "relation_type": "BELONGS_TO",
+        "group_id": "synapse",
+        "source_id": "upload",
+        "source_type": "upload"
+      }
+    ]
+  }

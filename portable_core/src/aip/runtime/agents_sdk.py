@@ -1,7 +1,7 @@
 """OpenAI Agents SDK thin runtime wrap (Authority: Agent runtime = OpenAI Agents SDK).
 
 ExecuteJob goes through SDK-registered tools that call portable_core connectors.
-When OPENAI_API_KEY is set, Runner may plan the tool call; when absent, the same
+When OPENAI/OpenRouter key is set, Runner may plan the tool call; when absent, the same
 SDK tool function is invoked directly (structured action already auditor-approved).
 Evidence contracts are unchanged.
 """
@@ -10,23 +10,34 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Callable
+from typing import Any
 
 from aip.jobs.execute import execute_job_type
+from aip.llm.client import llm_configured, resolve_llm_api_key, resolve_llm_base_url, resolve_llm_model
 
 
-def _openai_key() -> str:
-    return (os.environ.get("OPENAI_API_KEY") or "").strip()
+def _ensure_openai_env_for_agents_sdk() -> None:
+    """Agents SDK reads OPENAI_API_KEY; mirror unified LLM config into process env."""
+    key = resolve_llm_api_key()
+    if key and not (os.environ.get("OPENAI_API_KEY") or "").strip():
+        os.environ["OPENAI_API_KEY"] = key
+    base = resolve_llm_base_url()
+    if base:
+        # Common env vars used by OpenAI SDK / agents
+        os.environ.setdefault("OPENAI_BASE_URL", base)
+        os.environ.setdefault("OPENAI_API_BASE", base)
 
 
 def _run_via_sdk_llm(job_type: str, requested_action: dict[str, Any], agent_role: str) -> dict[str, Any] | None:
     """Optional LLM path — returns None to fall through to direct tool invoke."""
-    if not _openai_key():
+    if not llm_configured():
         return None
     try:
         from agents import Agent, Runner, function_tool
     except ImportError:
         return None
+
+    _ensure_openai_env_for_agents_sdk()
 
     @function_tool
     def execute_specialist_write(action_json: str) -> str:
@@ -46,6 +57,7 @@ def _run_via_sdk_llm(job_type: str, requested_action: dict[str, Any], agent_role
             "Do not invent resources outside the provided action."
         ),
         tools=[execute_specialist_write],
+        model=resolve_llm_model(),
     )
     prompt = (
         f"job_type={job_type}\n"
@@ -84,7 +96,7 @@ def execute_job_via_agents_runtime(
     """
     Authority-aligned ExecuteJob entrypoint.
 
-    1) Try OpenAI Agents SDK Runner when API key present.
+    1) Try OpenAI Agents SDK Runner when API key present (OpenAI or OpenRouter).
     2) Otherwise invoke the same connector path the SDK tool wraps (deterministic
        tool execution for auditor-approved structured actions).
     """
@@ -102,7 +114,7 @@ def execute_job_via_agents_runtime(
     result["_runtime"] = "openai-agents" if _try_import_agents() else "portable_core.connectors"
     result["_note"] = (
         "Structured ExecuteJob: SDK package present; tool invoked directly because "
-        "OPENAI_API_KEY unset or LLM path did not return parseable evidence. "
+        "LLM key unset or LLM path did not return parseable evidence. "
         "Same portable_core connector + evidence contracts."
         if _try_import_agents()
         else "openai-agents not installed; connector path used. Install optional [agents] extra."
