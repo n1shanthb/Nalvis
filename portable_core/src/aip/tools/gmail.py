@@ -321,6 +321,7 @@ def fetch_email(input: dict[str, Any]) -> dict[str, Any]:
         "subject": headers.get("subject", ""),
         "date": headers.get("date", ""),
         "rfc_message_id": headers.get("message-id", ""),
+        "auto_submitted": headers.get("auto-submitted", ""),
         "snippet": (data or {}).get("snippet") if isinstance(data, dict) else "",
         "body": _extract_body(payload),
         "label_ids": (data or {}).get("labelIds") if isinstance(data, dict) else [],

@@ -94,6 +94,114 @@ def _github_jobs_from_signal(signal: dict[str, Any]) -> list[dict[str, Any]]:
     return []
 
 
+def _parse_email_address(raw: str) -> str:
+    """Extract bare email from RFC5322 From/To headers."""
+    text = (raw or "").strip()
+    if not text:
+        return ""
+    if "<" in text and ">" in text:
+        start = text.rfind("<") + 1
+        end = text.rfind(">")
+        if end > start:
+            return text[start:end].strip()
+    if "@" in text and " " not in text:
+        return text
+    return text
+
+
+def gmail_inbound_skip_reply_reason(
+    *,
+    from_raw: str = "",
+    subject: str = "",
+    auto_submitted: str = "",
+    label_ids: list[str] | None = None,
+    gmail_user: str = "",
+    **_: Any,
+) -> str | None:
+    """Return skip reason when inbound mail must not get an auto-reply (bounces, daemons, self)."""
+    addr = _parse_email_address(from_raw).lower()
+    subj = (subject or "").strip().lower()
+    auto = (auto_submitted or "").strip().lower()
+    labels = {str(x).upper() for x in (label_ids or [])}
+    own = (gmail_user or "").strip().lower()
+
+    # Bot's own outbound (SENT-only or From == connected mailbox) — never reply-to-self.
+    if own and addr == own:
+        return "sender is connected mailbox (loop guard)"
+
+    if "SENT" in labels and "INBOX" not in labels:
+        return "outbound SENT message (not inbound)"
+
+    if auto and auto not in ("no", "none"):
+        return f"Auto-Submitted: {auto_submitted}"
+
+    system_local = (
+        "mailer-daemon",
+        "postmaster",
+        "mail-daemon",
+        "noreply",
+        "no-reply",
+        "bounce",
+        "daemon",
+    )
+    local = addr.split("@", 1)[0] if "@" in addr else addr
+    if any(local == p or local.startswith(f"{p}.") for p in system_local):
+        return f"system sender {addr or from_raw}"
+
+    if "mailer-daemon@" in addr or addr.endswith("@googlemail.com") and "daemon" in local:
+        return f"mail system sender {addr}"
+
+    bounce_subjects = (
+        "delivery status notification",
+        "undeliverable",
+        "delivery failure",
+        "mail delivery failed",
+        "returned mail",
+        "failure notice",
+    )
+    if any(p in subj for p in bounce_subjects):
+        return f"bounce/DSN subject: {subject[:80]}"
+
+    return None
+
+
+def _gmail_jobs_from_signal(signal: dict[str, Any]) -> list[dict[str, Any]]:
+    """Inbound Gmail → reply job addressed to the sender (never KG distribution lists)."""
+    if str(signal.get("channel") or "") != "gmail":
+        return []
+    message_id = str(signal.get("message_id") or "").strip()
+    if not message_id:
+        return []
+    from aip.config import settings
+
+    skip = gmail_inbound_skip_reply_reason(
+        from_raw=str(signal.get("from") or ""),
+        subject=str(signal.get("subject") or ""),
+        auto_submitted=str(signal.get("auto_submitted") or ""),
+        label_ids=list(signal.get("label_ids") or []),
+        gmail_user=settings.gmail_user or "",
+    )
+    if skip:
+        return []
+    reply_to = _parse_email_address(str(signal.get("from") or ""))
+    action: dict[str, Any] = {"message_id": message_id}
+    if signal.get("thread_id"):
+        action["thread_id"] = signal["thread_id"]
+    if reply_to:
+        action["reply_to"] = reply_to
+    subject = str(signal.get("subject") or "").strip()
+    if subject:
+        action["subject"] = subject if subject.lower().startswith("re:") else f"Re: {subject}"
+    return [
+        {
+            "job_type": "gmail.send_email",
+            "requested_action": action,
+            "rationale": "Gmail inbound signal — reply to original sender (not KG email groups)",
+            "title": f"Reply to {reply_to or 'sender'}",
+        }
+    ]
+
+
 @dataclass
 class ProposedJob:
     agent_id: str
@@ -125,9 +233,10 @@ def route(
     1. Structured `plan` entries (human/API-provided objectives — still audited).
     2. Structured `signal.requested_jobs` if present.
     3. GitHub webhook signal facts → catalog job types (issues/PR families).
-    4. Objectives that are JSON job objects.
-    5. LLM classification against catalog when OPENAI/OpenRouter key set.
-    6. Otherwise empty decision with note (no inventing example paths).
+    4. Gmail inbound signal facts → reply job (sender from message, not KG lists).
+    5. Objectives that are JSON job objects.
+    6. LLM classification against catalog when OPENAI/OpenRouter key set.
+    7. Otherwise empty decision with note (no inventing example paths).
     """
     executable = [
         a
@@ -152,7 +261,11 @@ def route(
     if github_from_signal:
         return _from_structured_plan(github_from_signal, executable, workspace, signal=signal)
 
-    # 4) Objectives that are JSON job objects
+    gmail_from_signal = _gmail_jobs_from_signal(signal)
+    if gmail_from_signal:
+        return _from_structured_plan(gmail_from_signal, executable, workspace, signal=signal)
+
+    # 5) Objectives that are JSON job objects
     structured_from_obj: list[dict[str, Any]] = []
     for obj in objectives:
         if isinstance(obj, dict):
@@ -167,7 +280,7 @@ def route(
     if structured_from_obj:
         return _from_structured_plan(structured_from_obj, executable, workspace, signal=signal)
 
-    # 5) LLM (OPENAI_API_KEY or OPENROUTER_API_KEY + LLM_API_BASE)
+    # 6) LLM (OPENAI_API_KEY or OPENROUTER_API_KEY + LLM_API_BASE)
     if llm_configured() and (objectives or signal):
         try:
             return _llm_route(executable, workspace, objectives, signal)
@@ -303,10 +416,20 @@ def _enrich_action_from_scope(
     if job_type.startswith("calendar.") and "calendar_id" not in out:
         cals = scope.get("calendars") or workspace.get("calendar_scope") or []
         out.setdefault("calendar_id", str(cals[0]) if cals else "primary")
-    if job_type.startswith("gmail.") and "to" not in out:
-        groups = scope.get("emailGroups") or workspace.get("comms_scope") or []
-        if groups:
-            out.setdefault("to", str(groups[0]))
+    if job_type.startswith("gmail."):
+        if str(sig.get("channel") or "") == "gmail" and sig.get("message_id"):
+            out["message_id"] = str(sig["message_id"])
+            if sig.get("thread_id"):
+                out["thread_id"] = str(sig["thread_id"])
+            reply_to = _parse_email_address(str(sig.get("from") or ""))
+            if reply_to:
+                out["reply_to"] = reply_to
+            # Inbound reply must not target KG distribution lists / stakeholder emails.
+            out.pop("to", None)
+        elif "to" not in out:
+            groups = scope.get("emailGroups") or workspace.get("comms_scope") or []
+            if groups:
+                out.setdefault("to", str(groups[0]))
     return out
 
 

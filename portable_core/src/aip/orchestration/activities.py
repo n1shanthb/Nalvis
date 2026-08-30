@@ -304,10 +304,19 @@ async def fetch_gmail_inbound_signal_activity(payload: dict[str, Any]) -> dict[s
 
     # Explicit message (simulate / already known)
     if message_id:
-        mail = fetch_email({"message_id": message_id})
-        if mail.get("error"):
-            return {"ok": False, "error": mail.get("error"), "signal": {}}
-        signal = _gmail_signal_from_mail(mail, delivery_id=delivery_id, history_id=history_id)
+        mail, signal = _fetch_gmail_signal_for_message(
+            message_id, delivery_id=delivery_id, history_id=history_id
+        )
+        if mail is None:
+            return signal  # type: ignore[return-value]
+        if signal.get("skip_reply_reason"):
+            return {
+                "ok": True,
+                "skipped": True,
+                "reason": signal["skip_reply_reason"],
+                "signal": signal,
+                "message_ids": [message_id],
+            }
         return {"ok": True, "signal": signal, "message_ids": [message_id]}
 
     if not history_id:
@@ -327,7 +336,7 @@ async def fetch_gmail_inbound_signal_activity(payload: dict[str, Any]) -> dict[s
     if not ids:
         from aip.tools.gmail import search_emails
 
-        recent = search_emails({"query": "in:inbox newer_than:1d", "max_results": 3})
+        recent = search_emails({"query": "in:inbox -from:me newer_than:1d", "max_results": 5})
         if recent.get("error"):
             return {
                 "ok": False,
@@ -351,24 +360,51 @@ async def fetch_gmail_inbound_signal_activity(payload: dict[str, Any]) -> dict[s
             "skipped": True,
         }
 
-    # Debounce: use the newest message as the signal
-    mid = ids[-1]
-    mail = fetch_email({"message_id": mid})
-    if mail.get("error"):
-        return {"ok": False, "error": mail.get("error"), "signal": {}}
-    signal = _gmail_signal_from_mail(mail, delivery_id=delivery_id, history_id=history_id)
-    return {"ok": True, "signal": signal, "message_ids": ids}
+    # Debounce: prefer newest *replyable* human message (skip bounces/daemons)
+    chosen_signal: dict[str, Any] | None = None
+    chosen_id: str | None = None
+    for mid in reversed(ids):
+        mail, signal = _fetch_gmail_signal_for_message(
+            mid, delivery_id=delivery_id, history_id=history_id
+        )
+        if mail is None:
+            continue
+        if signal.get("skip_reply_reason"):
+            continue
+        if signal.get("requested_jobs"):
+            chosen_signal = signal
+            chosen_id = mid
+            break
+
+    if not chosen_signal:
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": "no replyable human messages in batch (bounces/system mail ignored)",
+            "signal": {"channel": "gmail", "history_id": history_id, "delivery_id": delivery_id},
+            "message_ids": ids,
+        }
+
+    return {"ok": True, "signal": chosen_signal, "message_ids": ids, "message_id": chosen_id}
 
 
 def _gmail_signal_from_mail(
     mail: dict[str, Any], *, delivery_id: str = "", history_id: str = ""
 ) -> dict[str, Any]:
+    from aip.config import settings
+    from aip.director.router import (
+        _gmail_jobs_from_signal,
+        _parse_email_address,
+        gmail_inbound_skip_reply_reason,
+    )
+
     body = str(mail.get("body") or "")
     snippet = str(mail.get("snippet") or body[:500])
-    return {
+    from_raw = str(mail.get("from") or "")
+    signal: dict[str, Any] = {
         "channel": "gmail",
         "subject": mail.get("subject") or "",
-        "from": mail.get("from") or "",
+        "from": from_raw,
         "to": mail.get("to") or "",
         "snippet": snippet,
         "body_summary": body[:1500] if body else snippet,
@@ -376,7 +412,39 @@ def _gmail_signal_from_mail(
         "message_id": mail.get("message_id") or "",
         "delivery_id": delivery_id,
         "history_id": history_id,
+        "auto_submitted": mail.get("auto_submitted") or "",
+        "label_ids": list(mail.get("label_ids") or []),
     }
+    reply_to = _parse_email_address(from_raw)
+    if reply_to:
+        signal["reply_to"] = reply_to
+    skip = gmail_inbound_skip_reply_reason(
+        from_raw=from_raw,
+        subject=str(signal.get("subject") or ""),
+        auto_submitted=str(signal.get("auto_submitted") or ""),
+        label_ids=list(signal.get("label_ids") or []),
+        gmail_user=settings.gmail_user or "",
+    )
+    if skip:
+        signal["skip_reply_reason"] = skip
+    else:
+        requested = _gmail_jobs_from_signal(signal)
+        if requested:
+            signal["requested_jobs"] = requested
+    return signal
+
+
+def _fetch_gmail_signal_for_message(
+    message_id: str, *, delivery_id: str = "", history_id: str = ""
+) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    """Fetch mail + signal; returns (mail, signal) or (None, error dict)."""
+    from aip.tools.gmail import fetch_email
+
+    mail = fetch_email({"message_id": message_id})
+    if mail.get("error"):
+        return None, {"ok": False, "error": mail.get("error"), "signal": {}}
+    signal = _gmail_signal_from_mail(mail, delivery_id=delivery_id, history_id=history_id)
+    return mail, signal
 
 
 @activity.defn(name="start_company_run_from_signal_activity")
@@ -391,6 +459,13 @@ async def start_company_run_from_signal_activity(payload: dict[str, Any]) -> dic
 
     init_db()
     signal = dict(payload.get("signal") or {})
+    if signal.get("skip_reply_reason"):
+        return {
+            "ok": True,
+            "skipped": True,
+            "reason": signal["skip_reply_reason"],
+            "signal": signal,
+        }
     objectives = list(payload.get("objectives") or [])
     if not objectives and signal.get("subject"):
         objectives = [

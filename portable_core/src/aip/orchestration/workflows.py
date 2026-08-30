@@ -261,6 +261,8 @@ class GmailInboundWorkflow:
             start_to_close_timeout=timedelta(minutes=2),
             retry_policy=_ACT_RETRY,
         )
+        if started.get("skipped"):
+            return {"ok": True, "skipped": True, "fetched": fetched, "started": started}
         return {"ok": bool(started.get("ok")), "fetched": fetched, "started": started}
 
 

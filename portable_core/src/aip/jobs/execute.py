@@ -152,7 +152,26 @@ def _github_comment_issue(action: dict[str, Any]) -> dict[str, Any]:
 
 
 def _gmail_send(action: dict[str, Any]) -> dict[str, Any]:
-    from aip.tools.gmail import send_email
+    from aip.tools.gmail import send_email, send_email_reply
+
+    message_id = str(action.get("message_id") or "").strip()
+    if message_id:
+        body = str(
+            action.get("body")
+            or "Thank you for your message. We have received it and will follow up shortly."
+        )
+        result = send_email_reply({"message_id": message_id, "body": body})
+        if result.get("error"):
+            return {"ok": False, "error": result}
+        return {
+            "ok": True,
+            "via": "native:gmail.reply",
+            "evidence": {
+                "message_id": result.get("message_id"),
+                "thread_id": result.get("thread_id"),
+            },
+            "raw": result,
+        }
 
     to = str(action.get("to") or settings.gmail_user or "").strip()
     if not to:
