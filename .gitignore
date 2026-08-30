@@ -1,5 +1,9 @@
 legacy-harvest/
 legacy_harvest/
+AUTHORITY.md
+goallol.md
+goalship.md
+portable_core/
 __pycache__/
 *.pyc
 .pytest_cache/
