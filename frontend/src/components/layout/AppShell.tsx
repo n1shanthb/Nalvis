@@ -17,13 +17,14 @@ import { getAdapterMode } from '@/lib/api'
 import { useDemoStore } from '@/lib/store'
 
 const globalNav = [
+  { to: '/ops', label: 'Ops console', icon: LayoutDashboard },
   { to: '/context', label: 'Context Studio', icon: FileSearch },
   { to: '/projects', label: 'All projects', icon: Boxes },
   { to: '/integrations', label: 'Integrations', icon: Plug },
 ]
 
 const projectSections = [
-  { segment: '', label: 'Overview', icon: LayoutDashboard, end: true },
+  { segment: '', label: 'Overview', icon: Gauge, end: true },
   { segment: 'runs', label: 'Runs', icon: Workflow, end: false },
   { segment: 'approvals', label: 'Approvals', icon: CheckSquare, end: false },
   { segment: 'policies', label: 'Policies', icon: Shield, end: false },
@@ -66,7 +67,7 @@ export function AppShell() {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  end={item.to === '/projects'}
+                  end={item.to === '/ops' || item.to === '/projects'}
                   className={({ isActive }) =>
                     cn(
                       'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',

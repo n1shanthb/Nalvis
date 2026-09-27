@@ -14,6 +14,7 @@ import { ValidationReportsPage } from '@/pages/ValidationReportsPage'
 import { AgentsPage } from '@/pages/AgentsPage'
 import { AgentDetailPage } from '@/pages/AgentDetailPage'
 import { AgentsLayout } from '@/components/layout/AgentsLayout'
+import { OpsConsolePage } from '@/pages/OpsConsolePage'
 
 export default function App() {
   const hydrate = useDemoStore((s) => s.hydrate)
@@ -45,7 +46,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<AppShell />}>
-          <Route index element={<Navigate to="/projects" replace />} />
+          <Route index element={<Navigate to="/ops" replace />} />
+          <Route path="ops" element={<OpsConsolePage />} />
           <Route path="context" element={<ContextStudioPage />} />
           <Route path="integrations" element={<IntegrationsPage />} />
           <Route path="projects" element={<ProjectsIndexPage />} />
