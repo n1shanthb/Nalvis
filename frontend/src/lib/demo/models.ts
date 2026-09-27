@@ -122,6 +122,34 @@ export interface Run {
   jobIds: string[]
 }
 
+export interface ApprovalContextField {
+  label: string
+  value: string
+  mono?: boolean
+  link?: string
+}
+
+export interface ApprovalTrigger {
+  channel: string
+  title: string
+  rows: { label: string; value: string }[]
+}
+
+export interface ApprovalContext {
+  system: string
+  actionLabel: string
+  summary: string
+  agentName?: string
+  fields: ApprovalContextField[]
+  impact: string[]
+  links: { label: string; href: string }[]
+  editableKey?: string
+  editableLabel?: string
+  editableDefault?: string
+  requestedAction?: Record<string, unknown>
+  trigger?: ApprovalTrigger
+}
+
 export interface ApprovalItem {
   id: string
   jobId: string
@@ -131,7 +159,8 @@ export interface ApprovalItem {
   jobType: string
   title: string
   intentSummary: string
-  diffPreview: { before: string; after: string }
+  diffPreview: { before: string; after: string; context?: ApprovalContext }
+  context?: ApprovalContext | null
   decision: ApprovalDecision
   editedPayload: string | null
   createdAt: string
