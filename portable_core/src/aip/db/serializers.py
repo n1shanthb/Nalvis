@@ -90,6 +90,8 @@ def job_to_api(row: JobRow) -> dict[str, Any]:
 
 
 def approval_to_api(row: ApprovalRow) -> dict[str, Any]:
+    diff = row.diff_preview or {"before": "", "after": ""}
+    context = diff.get("context") if isinstance(diff.get("context"), dict) else None
     return {
         "id": row.id,
         "jobId": row.job_id,
@@ -99,8 +101,8 @@ def approval_to_api(row: ApprovalRow) -> dict[str, Any]:
         "jobType": row.job_type,
         "title": row.title,
         "intentSummary": row.intent_summary,
-        "diffPreview": row.diff_preview
-        or {"before": "", "after": ""},
+        "diffPreview": diff,
+        "context": context,
         "decision": row.decision,
         "editedPayload": row.edited_payload,
         "createdAt": _iso(row.created_at) or "",

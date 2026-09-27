@@ -121,11 +121,9 @@ def _github_comment_issue(action: dict[str, Any]) -> dict[str, Any]:
     if issue_number is None:
         return {"ok": False, "error": "github.comment_issue requires issue_number"}
     title = str(action.get("title") or "").strip()
-    body = str(
-        action.get("body")
-        or action.get("comment")
-        or (f"[agentsuite] Received issue #{issue_number}" + (f": {title}" if title else ""))
-    )
+    body = str(action.get("body") or action.get("comment") or "").strip()
+    if not body:
+        return {"ok": False, "error": "github.comment_issue requires a non-empty comment body"}
     try:
         data = post_issue_comment(
             owner=owner,
@@ -291,7 +289,9 @@ def _github_review_pr(action: dict[str, Any]) -> dict[str, Any]:
     pull_number = action.get("pull_number") or action.get("pr_number") or action.get("number")
     if pull_number is None:
         return {"ok": False, "error": "github.review_pr requires pull_number"}
-    body = str(action.get("body") or action.get("comment") or "[agentsuite] PR review")
+    body = str(action.get("body") or action.get("comment") or "").strip()
+    if not body:
+        return {"ok": False, "error": "github.review_pr requires a non-empty review body (draft step may have failed)"}
     event = str(action.get("event") or "COMMENT")
     try:
         data = create_pull_request_review(

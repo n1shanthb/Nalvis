@@ -31,6 +31,7 @@ def get_activities() -> list[Any]:
     from aip.orchestration.activities import (
         create_hil_approval_activity,
         director_route_activity,
+        draft_job_content_activity,
         ensure_schema,
         evaluate_policy_activity,
         execute_job_activity,
@@ -49,6 +50,7 @@ def get_activities() -> list[Any]:
         director_route_activity,
         evaluate_policy_activity,
         create_hil_approval_activity,
+        draft_job_content_activity,
         execute_job_activity,
         validate_job_activity,
         mark_run_status_activity,

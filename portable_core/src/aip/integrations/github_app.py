@@ -181,6 +181,102 @@ def find_pull_request_number(
     return None
 
 
+def get_pull_request_context(
+    *,
+    owner: str,
+    repo: str,
+    pull_number: int,
+) -> dict[str, Any]:
+    """Read-only PR facts for review drafting (title, body, files, diff stats)."""
+    token = resolve_github_token()
+    if not token:
+        return {"error": "GitHub auth missing"}
+    headers = _github_headers(token)
+    base = f"https://api.github.com/repos/{owner}/{repo}"
+    out: dict[str, Any] = {"owner": owner, "repo": repo, "pull_number": int(pull_number)}
+    with httpx.Client(timeout=45.0) as client:
+        pr_resp = client.get(f"{base}/pulls/{int(pull_number)}", headers=headers)
+        if pr_resp.status_code >= 400:
+            return {"error": f"PR fetch failed ({pr_resp.status_code}): {pr_resp.text[:300]}"}
+        pr = pr_resp.json() if isinstance(pr_resp.json(), dict) else {}
+        user = pr.get("user") if isinstance(pr.get("user"), dict) else {}
+        head = pr.get("head") if isinstance(pr.get("head"), dict) else {}
+        base_ref = pr.get("base") if isinstance(pr.get("base"), dict) else {}
+        out.update(
+            {
+                "title": str(pr.get("title") or ""),
+                "body": str(pr.get("body") or ""),
+                "state": str(pr.get("state") or ""),
+                "html_url": str(pr.get("html_url") or ""),
+                "author": str(user.get("login") or ""),
+                "head_branch": str(head.get("ref") or ""),
+                "base_branch": str(base_ref.get("ref") or ""),
+                "additions": int(pr.get("additions") or 0),
+                "deletions": int(pr.get("deletions") or 0),
+                "changed_files": int(pr.get("changed_files") or 0),
+                "commits": int(pr.get("commits") or 0),
+            }
+        )
+        files_resp = client.get(
+            f"{base}/pulls/{int(pull_number)}/files",
+            headers=headers,
+            params={"per_page": 30},
+        )
+        files: list[dict[str, str]] = []
+        if files_resp.status_code < 400 and isinstance(files_resp.json(), list):
+            for row in files_resp.json():
+                if not isinstance(row, dict):
+                    continue
+                files.append(
+                    {
+                        "filename": str(row.get("filename") or ""),
+                        "status": str(row.get("status") or ""),
+                        "additions": str(row.get("additions") or "0"),
+                        "deletions": str(row.get("deletions") or "0"),
+                        "patch": str(row.get("patch") or "")[:1200],
+                    }
+                )
+        out["files"] = files
+    return out
+
+
+def get_issue_context(
+    *,
+    owner: str,
+    repo: str,
+    number: int,
+) -> dict[str, Any]:
+    """Read-only issue facts for comment drafting."""
+    token = resolve_github_token()
+    if not token:
+        return {"error": "GitHub auth missing"}
+    headers = _github_headers(token)
+    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{int(number)}"
+    with httpx.Client(timeout=30.0) as client:
+        resp = client.get(url, headers=headers)
+        if resp.status_code >= 400:
+            return {"error": f"Issue fetch failed ({resp.status_code}): {resp.text[:300]}"}
+        issue = resp.json() if isinstance(resp.json(), dict) else {}
+    user = issue.get("user") if isinstance(issue.get("user"), dict) else {}
+    labels = [
+        str(lab.get("name") or "")
+        for lab in (issue.get("labels") or [])
+        if isinstance(lab, dict) and lab.get("name")
+    ]
+    return {
+        "owner": owner,
+        "repo": repo,
+        "issue_number": int(number),
+        "title": str(issue.get("title") or ""),
+        "body": str(issue.get("body") or ""),
+        "state": str(issue.get("state") or ""),
+        "html_url": str(issue.get("html_url") or ""),
+        "author": str(user.get("login") or ""),
+        "labels": labels,
+        "is_pull_request": "pull_request" in (issue.get("pull_request") or {}),
+    }
+
+
 def create_issue(
     *,
     owner: str,
@@ -280,7 +376,9 @@ def create_pull_request_review(
     token = resolve_github_token()
     if not token:
         raise RuntimeError("GitHub auth missing for PR review")
-    text = (body or "").strip() or "AgentSuite review"
+    text = (body or "").strip()
+    if not text:
+        raise ValueError("PR review body is empty")
     ev = (event or "COMMENT").strip().upper()
     if ev not in ("COMMENT", "APPROVE", "REQUEST_CHANGES", "PENDING"):
         ev = "COMMENT"

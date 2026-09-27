@@ -356,10 +356,34 @@ def list_timeline_api(session: Session, run_id: str) -> list[dict[str, Any]]:
 
 
 def list_approvals_api(session: Session, decision: str | None = None) -> list[dict[str, Any]]:
+    from aip.approvals.preview import build_approval_preview
+
     q = select(ApprovalRow).order_by(ApprovalRow.created_at.desc())
     if decision:
         q = q.where(ApprovalRow.decision == decision)
-    return [approval_to_api(r) for r in session.scalars(q).all()]
+    out: list[dict[str, Any]] = []
+    for row in session.scalars(q).all():
+        diff = dict(row.diff_preview or {})
+        if not isinstance(diff.get("context"), dict):
+            job = session.get(JobRow, row.job_id)
+            run = session.get(RunRow, row.run_id) if row.run_id else None
+            agent = session.get(AgentRow, row.agent_id) if row.agent_id else None
+            if job:
+                enriched = build_approval_preview(
+                    job_type=job.job_type,
+                    requested_action=dict(job.requested_action or {}),
+                    job_title=str(job.title or row.title or ""),
+                    policy_reason=str(row.intent_summary or ""),
+                    run_signal=run.signal if run and isinstance(run.signal, dict) else {},
+                    agent_name=str(agent.name or "") if agent else "",
+                )
+                diff = {**diff, **enriched}
+        payload = approval_to_api(row)
+        if diff.get("context"):
+            payload["context"] = diff["context"]
+            payload["diffPreview"] = diff
+        out.append(payload)
+    return out
 
 
 def list_validations_api(session: Session) -> list[dict[str, Any]]:

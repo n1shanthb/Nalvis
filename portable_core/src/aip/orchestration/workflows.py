@@ -96,6 +96,15 @@ class ProductRunWorkflow:
                 continue
 
             edited_action = None
+            await workflow.execute_activity(
+                "draft_job_content_activity",
+                {
+                    "job_id": job_id,
+                    "signal": payload.get("signal") or {},
+                },
+                start_to_close_timeout=timedelta(minutes=3),
+                retry_policy=_ACT_RETRY,
+            )
             if decision == "hil":
                 self._approval_decision = None
                 await workflow.execute_activity(

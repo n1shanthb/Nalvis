@@ -135,25 +135,67 @@ async def evaluate_policy_activity(payload: dict[str, Any]) -> dict[str, Any]:
         return {"decision": ev.decision, "reason": ev.reason, "job_id": job.id}
 
 
+@activity.defn(name="draft_job_content_activity")
+async def draft_job_content_activity(payload: dict[str, Any]) -> dict[str, Any]:
+    """Fill missing review/comment/reply bodies from PR/issue/mail facts + LLM."""
+    from aip.db.orm import JobRow, RunRow
+    from aip.jobs.draft import draft_job_action, needs_content_draft
+
+    init_db()
+    job_id = str(payload.get("job_id") or "")
+    with session_scope() as session:
+        job = session.get(JobRow, job_id)
+        if not job:
+            return {"ok": False, "error": "job not found"}
+        action = dict(job.requested_action or {})
+        if not needs_content_draft(job.job_type, action):
+            return {"ok": True, "skipped": True, "job_id": job_id}
+        run = session.get(RunRow, job.run_id)
+        signal = dict(payload.get("signal") or {})
+        if run and isinstance(run.signal, dict):
+            signal = {**run.signal, **signal}
+        drafted = draft_job_action(job.job_type, action, signal=signal)
+        job.requested_action = drafted
+        session.add(job)
+        session.flush()
+        return {
+            "ok": True,
+            "job_id": job_id,
+            "drafted": True,
+            "body_preview": str(drafted.get("body") or "")[:500],
+        }
+
+
 @activity.defn(name="create_hil_approval_activity")
 async def create_hil_approval_activity(payload: dict[str, Any]) -> dict[str, Any]:
     init_db()
     with session_scope() as session:
-        from aip.db.orm import JobRow
+        from aip.db.orm import AgentRow, JobRow, RunRow
+        from aip.approvals.preview import build_approval_preview
 
         job = session.get(JobRow, payload["job_id"])
         if not job:
             return {"ok": False, "error": "job not found"}
+        run = session.get(RunRow, job.run_id)
+        signal = run.signal if run and isinstance(run.signal, dict) else {}
+        agent = session.get(AgentRow, job.agent_id) if job.agent_id else None
+        agent_name = str(agent.name or "") if agent else ""
+        preview = build_approval_preview(
+            job_type=job.job_type,
+            requested_action=dict(job.requested_action or {}),
+            job_title=str(job.title or ""),
+            policy_reason=str(payload.get("intent_summary") or ""),
+            run_signal=signal,
+            agent_name=agent_name,
+        )
         appr = create_approval(
             session,
             job=job,
             temporal_workflow_id=payload.get("temporal_workflow_id") or "",
             intent_summary=payload.get("intent_summary")
-            or f"Approve {job.job_type}: {job.requested_action}",
-            diff_preview={
-                "before": "",
-                "after": str(job.requested_action),
-            },
+            or preview.get("context", {}).get("summary")
+            or f"Approve {job.job_type}",
+            diff_preview=preview,
         )
         return {"ok": True, "approval": approval_to_api(appr)}
 
