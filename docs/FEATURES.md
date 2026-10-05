@@ -108,6 +108,7 @@ Gmail inbound **replies to the original sender**, not KG distribution lists. Sys
 
 | Page | Purpose |
 |------|---------|
+| **Ops console** | Company graph, agent strip, Temporal timeline, health stats |
 | **Context Studio** | KG ingest, parse preview, clear state |
 | **All projects** | Workspace list |
 | **Overview** | Project scope summary |
