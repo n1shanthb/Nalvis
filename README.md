@@ -1,4 +1,4 @@
-# AgentSuite
+# Nalvis
 
 **Single-tenant, multi-product agentic automation** for engineering and ops teams.
 
@@ -385,4 +385,6 @@ Full env catalog, OAuth, webhooks, and troubleshooting: [`docs/SETUP.md`](docs/S
 
 ## License
 
-Private / internal — see repository owner for terms.
+License
+Copyright © 2026 Nishanth B. All rights reserved.
+This repository is publicly available for code review and evaluation purposes. No permission is granted to copy, modify, redistribute, sublicense, or commercially use this software without prior written authorization.
