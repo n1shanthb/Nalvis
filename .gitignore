@@ -15,3 +15,5 @@ data/smoke_proof/
 .venv/
 venv/
 ex1.json
+# Local-only rehearsal / sample dumps (kept on disk, not on GitHub)
+private/

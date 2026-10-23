@@ -16,8 +16,8 @@ Companies run many products (payment gateway + customer portal, etc.), each with
 
 Naive “LLM chatbot” approaches fail three ways:
 
-| Failure | AgentSuite answer |
-|---------|-------------------|
+| Failure | Solution |
+|---------|----------|
 | Crash mid-run loses work | **Temporal** owns workflow state; replays from last completed step |
 | Wrong repo / recipient | **Workspace scope + routing auditor + policy/HIL** |
 | Agent claims success with no proof | **Evidence contracts + read-only Validation Agent** |
@@ -156,10 +156,10 @@ flowchart LR
 | Control plane API | http://127.0.0.1:8000 · docs `/docs` |
 | Temporal UI | http://localhost:8080 |
 | Temporal gRPC | `localhost:7233` |
-| Postgres | `localhost:5432` · `agentsuite` / `agentsuite` / `agentsuite` |
+| Postgres | `localhost:5432` · credentials from `docker-compose.yml` |
 | Redis | `localhost:6379` |
 
-Temporal uses separate DBs (`temporal`, `temporal_visibility`) on the same Postgres instance locally. App data stays in `agentsuite`.
+Temporal uses separate DBs (`temporal`, `temporal_visibility`) on the same Postgres instance locally. App tables live in the compose app database.
 
 ---
 
@@ -286,7 +286,7 @@ Optional **cloudflared** tunnel from Integrations page for public webhook URLs.
 | Durable runs | Stable workflow ID `company-run-{uuid}`; crash → replay |
 | Fast webhooks | Enqueue only; long I/O in Temporal activities |
 | Bounded concurrency | Fan-out per company run; Redis rate limits per integration |
-| Horizontal workers | Stateless processes on `agentsuite-main` task queue |
+| Horizontal workers | Stateless processes on the primary Temporal task queue (`TEMPORAL_TASK_QUEUE`) |
 | Stateless API | Scale FastAPI replicas independently |
 | Fail-closed routing | Auditor rejects before job rows exist |
 
@@ -297,7 +297,7 @@ Workers do not hold workflow state — Temporal does. Adding workers needs no st
 ## Repository layout
 
 ```
-agentsuite/
+.
 ├── apps/
 │   ├── api/                 # FastAPI control plane (routes, webhooks, tunnel)
 │   └── worker/              # Temporal worker registration
@@ -369,7 +369,6 @@ Full env catalog, OAuth, webhooks, and troubleshooting: [`docs/SETUP.md`](docs/S
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Planes, reliability patterns, scaling |
 | [`CONNECT.md`](CONNECT.md) | Connector smoke + webhook tunnel |
 | [`infra/README.md`](infra/README.md) | Compose endpoints and Temporal DB notes |
-| [`INTERVIEW_PREP.md`](INTERVIEW_PREP.md) | Pitch, whiteboard talking points |
 | [`demo/README.md`](demo/README.md) | Sample Nexus Digital enterprise KG |
 
 ---

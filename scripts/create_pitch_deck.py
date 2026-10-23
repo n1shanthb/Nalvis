@@ -7,7 +7,8 @@ from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.util import Inches, Pt
 
 
-OUT = Path(__file__).resolve().parents[1] / "pitch_deck.pptx"
+OUT = Path(__file__).resolve().parents[1] / "private" / "pitch_deck.pptx"
+OUT.parent.mkdir(parents=True, exist_ok=True)
 W, H = 13.333, 7.5
 NAVY = RGBColor(8, 19, 40)
 NAVY2 = RGBColor(16, 34, 64)

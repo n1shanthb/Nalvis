@@ -145,7 +145,7 @@ Open http://localhost:5173
 
 ## 6. First-use checklist
 
-1. **Context Studio** (`/context`) — upload or paste KG JSON (e.g. `ex3.json`). Creates workspaces and agents.
+1. **Context Studio** (`/context`) — upload or paste KG JSON (e.g. `demo/nexus-digital-enterprise-kg.json`). Creates workspaces and agents.
 2. **Integrations** (`/integrations`) — confirm connector health; start inbound tunnel if testing webhooks.
 3. **Projects** — pick a workspace → Runs, Approvals, Agents, Validation.
 4. **Smoke** (optional):

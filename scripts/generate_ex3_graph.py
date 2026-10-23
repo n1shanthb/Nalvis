@@ -7,7 +7,8 @@ import uuid
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-OUT = REPO / "ex3.json"
+OUT = REPO / "private" / "ex3.json"
+OUT.parent.mkdir(parents=True, exist_ok=True)
 GROUP = "heliostack"
 
 

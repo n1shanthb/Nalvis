@@ -8,11 +8,21 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[2]
-EX2 = ROOT.parent / "ex2.json" if not (ROOT / "ex2.json").exists() else ROOT / "ex2.json"
-# portable_core/tests → parents[1]=portable_core, parents[2]=agentsuite
+# portable_core/tests → parents[1]=portable_core, parents[2]=repo root
 REPO = Path(__file__).resolve().parents[2]
-EX2_PATH = REPO / "ex2.json"
+
+
+def _local_fixture(*names: str) -> Path:
+    """Prefer private/ (gitignored), then repo root for local sample dumps."""
+    for name in names:
+        for candidate in (REPO / "private" / name, REPO / name):
+            if candidate.exists():
+                return candidate
+    return REPO / "private" / names[0]
+
+
+EX2_PATH = _local_fixture("ex2.json")
+EX2 = EX2_PATH
 
 
 def test_resolve_llm_prefers_openai_then_openrouter(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -280,7 +290,7 @@ def test_recommended_agent_floor_plus_discovery(monkeypatch: pytest.MonkeyPatch)
     assert any("mail-1" in path or "mail" in path for p in floor for path in p.origin_paths)
 
 
-EX3_PATH = REPO / "ex3.json"
+EX3_PATH = _local_fixture("ex3.json")
 
 
 def test_ex3_graph_products_exclude_company_and_repo_names(monkeypatch: pytest.MonkeyPatch) -> None:
