@@ -1,0 +1,81 @@
+diff --git a/render/src/Demo.tsx b/render/src/Demo.tsx
+index 2dba7b9..1a45b14 100644
+--- a/render/src/Demo.tsx
++++ b/render/src/Demo.tsx
+@@ -63,6 +63,7 @@ export type OutroSlide = SlideNarration & {title: string; subtitle?: string; url
+ 
+ export type Scene = {
+   id: string;
++  caption?: CaptionStyle;
+   media?: 'still' | 'clip';
+   screenshot: string; // path under public/; for clips this is the end-state freeze frame
+   clip?: string; // path under public/ (media: 'clip')
+@@ -448,9 +449,12 @@ const ClipScene: React.FC<{scene: Scene}> = ({scene}) => {
+   const clipFrames = Math.round((clipDuration / rate) * FPS);
+   const pos = cursorAt(scene.events ?? [], Math.min(t, clipDuration));
+   const clicks = (scene.events ?? []).filter((e) => e.type === 'click');
++  const cameraScale = scene.focus ? interpolate(frame, [60, 150], [1, scene.focus.zoom ?? 1], {
++    extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.inOut(Easing.cubic),
++  }) : 1;
+ 
+   return (
+-    <AbsoluteFill>
++    <AbsoluteFill style={{transform: `scale(${cameraScale})`, transformOrigin: scene.focus ? `${scene.focus.x}px ${scene.focus.y}px` : '50% 50%'}}>
+       {frame < clipFrames && scene.clip ? (
+         <OffthreadVideo
+           muted
+@@ -730,7 +734,7 @@ const SceneView: React.FC<{
+           text={scene.script}
+           words={scene.words}
+           layout={layout}
+-          style={captionStyle}
++          style={{...captionStyle, ...scene.caption}}
+           highlightColor={brand}
+         />
+       ) : null}
+diff --git a/scripts/render.mjs b/scripts/render.mjs
+index 6461567..0c89595 100644
+--- a/scripts/render.mjs
++++ b/scripts/render.mjs
+@@ -16,6 +16,7 @@
+ //                    captions.srt   subtitles matching the same timeline
+ import {execFileSync} from 'node:child_process';
+ import {existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync} from 'node:fs';
++import {fileURLToPath} from 'node:url';
+ 
+ const args = process.argv.slice(2);
+ const project = args.find((a) => !a.startsWith('--'));
+@@ -82,10 +83,12 @@ const archive = (out) => {
+ const renderComp = (out, props) => {
+   archive(out);
+   execFileSync(
+-    'npx',
+-    ['remotion', 'render', 'render/src/index.ts', comp, out,
++    process.execPath,
++    [fileURLToPath(new URL('../node_modules/@remotion/cli/remotion-cli.js', import.meta.url)), 'render', 'render/src/index.ts', comp, out,
+       `--public-dir=${publicDir}`,
+       '--timeout=90000',
++      '--concurrency=4',
++      ...(process.env.REMOTION_BROWSER_EXECUTABLE ? [`--browser-executable=${process.env.REMOTION_BROWSER_EXECUTABLE}`] : []),
+       `--props=${JSON.stringify(props)}`,
+       ...(gif ? ['--codec=gif', '--every-nth-frame=2', '--scale=0.5'] : [])],
+     {stdio: 'inherit'},
+diff --git a/tts/tts.mjs b/tts/tts.mjs
+index cc132dd..46e5c8a 100644
+--- a/tts/tts.mjs
++++ b/tts/tts.mjs
+@@ -138,11 +138,11 @@ const elevenlabs = async (text, outFile) => {
+ // on the free voices (karaoke word-highlight is an ElevenLabs-only feature).
+ const piper = (text, outFile) => {
+   const wav = outFile.replace(/\.mp3$/, '.wav');
+-  const modelDir = path.join(os.homedir(), '.ultrademo', 'piper');
+-  // Piper auto-downloads the voice model on first use.
++  const modelDir = process.env.PIPER_DATA_DIR ?? path.join(os.homedir(), '.ultrademo', 'piper');
++  // Piper 1.8 downloads voices separately via python -m piper.download_voices.
+   execFileSync(
+     'piper',
+-    ['--model', PIPER_MODEL, '--download-dir', modelDir, '--data-dir', modelDir, '--output_file', wav],
++    ['--model', PIPER_MODEL, '--data-dir', modelDir, '--output_file', wav],
+     {input: text},
+   );
+   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', wav, outFile]);

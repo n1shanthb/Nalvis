@@ -1,0 +1,95 @@
+{
+  "duration": 120.0,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "fps": "30/1",
+  "videoCodec": "h264",
+  "audioCodec": "aac",
+  "bytes": 20729006,
+  "decodeCheck": "passed",
+  "reviewFrames": 10,
+  "timeline": [
+    {
+      "id": "intro-slide",
+      "start": 0,
+      "duration": 12,
+      "midpoint": 6,
+      "sourceAudioDuration": 9.038367,
+      "speechRate": 0.856717251184834
+    },
+    {
+      "id": "s02-console",
+      "start": 12,
+      "duration": 8,
+      "midpoint": 16,
+      "sourceAudioDuration": 7.653878,
+      "speechRate": 1.0484764383561644
+    },
+    {
+      "id": "s03-context",
+      "start": 20,
+      "duration": 12,
+      "midpoint": 26,
+      "sourceAudioDuration": 11.102041,
+      "speechRate": 0.9824815044247787
+    },
+    {
+      "id": "s04-specialist",
+      "start": 32,
+      "duration": 12,
+      "midpoint": 38,
+      "sourceAudioDuration": 10.579592,
+      "speechRate": 0.9362470796460176
+    },
+    {
+      "id": "s05-policy",
+      "start": 44,
+      "duration": 10,
+      "midpoint": 49,
+      "sourceAudioDuration": 9.090612,
+      "speechRate": 0.9774851612903225
+    },
+    {
+      "id": "s06-run",
+      "start": 54,
+      "duration": 16,
+      "midpoint": 62,
+      "sourceAudioDuration": 10.945306,
+      "speechRate": 0.85
+    },
+    {
+      "id": "s07-evidence",
+      "start": 70,
+      "duration": 16,
+      "midpoint": 78,
+      "sourceAudioDuration": 12.251429,
+      "speechRate": 0.85
+    },
+    {
+      "id": "s08-architecture",
+      "start": 86,
+      "duration": 16,
+      "midpoint": 94,
+      "sourceAudioDuration": 17.81551,
+      "speechRate": 1.1644124183006535
+    },
+    {
+      "id": "s09-limits",
+      "start": 102,
+      "duration": 8,
+      "midpoint": 106,
+      "sourceAudioDuration": 7.235918,
+      "speechRate": 0.9912216438356164
+    },
+    {
+      "id": "outro-slide",
+      "start": 110,
+      "duration": 10,
+      "midpoint": 115,
+      "sourceAudioDuration": 8.333061,
+      "speechRate": 0.9746270175438596
+    }
+  ]
+}
